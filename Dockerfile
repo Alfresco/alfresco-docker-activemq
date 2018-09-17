@@ -16,18 +16,7 @@ ENV ACTIVEMQ_CONF="/opt/activemq/conf"
 ENV ACTIVEMQ_DATA="/opt/activemq/data"
 
 ENV ACTIVEMQ_VERSION="5.15.6"
-#ENV SCHEDULER_VOLUME="/opt/scheduler"
 ENV DOWNLOAD_URL="http://apache.mirrors.ovh.net/ftp.apache.org/dist/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
-
-#RUN yum -y update \
-#    yum-utils-1.1.31-46.el7_5 \
-#    yum-plugin-ovl-1.1.31-46.el7_5 \
-#    yum-plugin-fastestmirror-1.1.31-46.el7_5 \
-#    bind-license-9.9.4-61.el7_5.1 \
-#    python-2.7.5-69.el7_5 \
-#    gnupg2-2.0.22-5.el7_5 && \
-#    yum clean all
-
 
 RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq  && \
     curl ${DOWNLOAD_URL} -o /tmp/activemq.tar.gz && \
