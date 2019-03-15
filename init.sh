@@ -23,5 +23,3 @@ fi
 if [ ! -z "${ACTIVEMQ_BROKER_NAME}" ]; then
   sed -i "s/brokerName=\"localhost\"/brokerName=\""${ACTIVEMQ_BROKER_NAME}"\"/g" ${ACTIVEMQ_HOME}/conf/activemq.xml
 fi
-
-$ACTIVEMQ_HOME/bin/activemq console
