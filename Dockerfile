@@ -10,19 +10,32 @@ LABEL name="Alfresco ActiveMQ" \
     license="Various" \
     build-date="unset"
 
+# Set default user information
+ARG GROUPNAME=Alfresco
+ARG GROUPID=1000
+ARG USERNAME=amq
+ARG USERID=33031
+
 ENV ACTIVEMQ_HOME="/opt/activemq"
 ENV ACTIVEMQ_BASE="/opt/activemq"
 ENV ACTIVEMQ_CONF="/opt/activemq/conf"
 ENV ACTIVEMQ_DATA="/opt/activemq/data"
 
-ENV ACTIVEMQ_VERSION="5.15.6"
-ENV DOWNLOAD_URL="http://apache.mirrors.ovh.net/ftp.apache.org/dist/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
+ENV ACTIVEMQ_VERSION="5.15.8"
+ENV DOWNLOAD_URL="https://artifacts.alfresco.com/nexus/service/local/repositories/thirdparty/content/org/apache/apache-activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
 
 RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq  && \
     curl ${DOWNLOAD_URL} -o /tmp/activemq.tar.gz && \
     tar -xzf /tmp/activemq.tar.gz -C /tmp && \
     mv /tmp/apache-activemq-${ACTIVEMQ_VERSION}/* ${ACTIVEMQ_HOME} && \
     rm -rf /tmp/activemq.tar.gz
+
+RUN groupadd -g ${GROUPID} ${GROUPNAME} && \
+    useradd -u ${USERID} -G ${GROUPNAME} ${USERNAME} && \
+    chgrp -R ${GROUPNAME} ${ACTIVEMQ_HOME} && \
+    chown -h ${USERNAME}:${GROUPNAME} $ACTIVEMQ_HOME && \
+    chown ${USERNAME}:${GROUPNAME} ${ACTIVEMQ_DATA}/activemq.log && \
+    chmod g+rwx ${ACTIVEMQ_DATA}
 
 # Web Console
 EXPOSE 8161
@@ -40,3 +53,6 @@ VOLUME ["${ACTIVEMQ_CONF}"]
 WORKDIR ${ACTIVEMQ_HOME}
 ADD init.sh ${ACTIVEMQ_HOME}
 CMD ./init.sh ${ACTIVEMQ_HOME}
+
+USER ${USERNAME}
+CMD ${ACTIVEMQ_HOME}/bin/activemq console
