@@ -3,7 +3,7 @@
 # Version 0.1
 
 # This is an initial iteration and subject to change
-FROM quay.io/alfresco/alfresco-base-java:8u181-oracle-centos-7-fbda83b9c4da
+FROM quay.io/alfresco/alfresco-base-java:8u181-oracle-centos-7-ebbcd20c6bf4
 
 LABEL name="Alfresco ActiveMQ" \
     vendor="Alfresco" \
