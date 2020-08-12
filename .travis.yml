@@ -20,7 +20,7 @@ jobs:
       - |
         if [[ $TRAVIS_BRANCH == master ]]; then 
         docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}" && \
-        docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}" && \ 
+        docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}" && \
         docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG_SHORT_NAME}" && \
         docker images && \
         docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}" && \
