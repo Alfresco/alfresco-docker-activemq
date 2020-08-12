@@ -1,5 +1,12 @@
+language: ruby
+
+branches:
+  only:
+    - travis
+
 services:
   - docker
+
 env:
   global:
     - DOCKER_IMAGE_TAG_SHORT_NAME=$(grep DOCKER_IMAGE_TAG_SHORT_NAME build.properties|awk -F"=" '{print $2}')
@@ -21,8 +28,4 @@ before_deploy:
 jobs:
   include:
     - stage: build docker image
-deploy:
-  provider: script
-  script: docker push "${DOCKER_IMAGE_TAG}-release-candidate" && docker push "${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}" && docker push "${DOCKER_IMAGE_TAG_SHORT_NAME}"
-  on:
-    branch: travis
+      script: docker push "${DOCKER_IMAGE_TAG}-release-candidate" && docker push "${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}" && docker push "${DOCKER_IMAGE_TAG_SHORT_NAME}"
