@@ -18,14 +18,16 @@ jobs:
       - docker build -t ${DOCKER_IMAGE_REPOSITORY} .
       script:
       - |
-        if [[ $TRAVIS_BRANCH == master ]];then 
-        docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-release-candidate" && \
+        if [[ $TRAVIS_BRANCH == master ]]; then 
+        docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}" && \
         docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}" && \ 
         docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG_SHORT_NAME}" && \
-        docker images && docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}" && \
+        docker images && \
+        docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}" && \
         docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}" && \
-        docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG_SHORT_NAME}";
+        docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG_SHORT_NAME}"; && \
         if [[ $TRAVIS_COMMIT_MESSAGE == *"release"* ]]; then 
+           docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-release-candidate" && \
            docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-release-candidate" && \
            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin && \
            docker push "alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}" && \
