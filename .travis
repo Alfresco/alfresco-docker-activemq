@@ -1,0 +1,24 @@
+services:
+  - docker
+env:
+  global:
+    - DOCKER_IMAGE_TAG_SHORT_NAME=$(grep DOCKER_IMAGE_TAG_SHORT_NAME build.properties|awk -F"=" '{print $2}')
+    - DOCKER_IMAGE_REPOSITORY=$(grep DOCKER_IMAGE_REPOSITORY build.properties|awk -F"=" '{print $2}')
+    - DOCKER_IMAGE_TAG=$(grep DOCKER_IMAGE_TAG build.properties|awk -F"=" '{print $2}')
+
+before_install:
+  - docker build -t .
+
+after_script:
+  - docker images
+
+before_deploy:
+  - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG}-release-candidate"
+  - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}"
+  - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG_SHORT_NAME}"
+
+deploy:
+  provider: script
+  script: docker push "${DOCKER_IMAGE_TAG}-release-candidate" && docker push "${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}" && docker push "${DOCKER_IMAGE_TAG_SHORT_NAME}"
+  on:
+    branch: travis
