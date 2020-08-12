@@ -7,7 +7,7 @@ env:
     - DOCKER_IMAGE_TAG=$(grep DOCKER_IMAGE_TAG build.properties|awk -F"=" '{print $2}')
 
 before_install:
-  - docker build -t .
+  - docker build .
 
 after_script:
   - docker images
