@@ -7,7 +7,7 @@ env:
     - DOCKER_IMAGE_TAG=$(grep DOCKER_IMAGE_TAG build.properties|awk -F"=" '{print $2}')
 
 before_install:
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - echo "$DOCKER_PASSWORD" | docker login quay.io -u "$DOCKER_USERNAME" --password-stdin
   - docker build .
 
 after_script:
