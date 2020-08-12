@@ -8,6 +8,10 @@ env:
     - DOCKER_IMAGE_TAG_SHORT_NAME=$(grep DOCKER_IMAGE_TAG_SHORT_NAME build.properties|awk -F"=" '{print $2}')
     - DOCKER_IMAGE_REPOSITORY=$(grep DOCKER_IMAGE_REPOSITORY build.properties|awk -F"=" '{print $2}')
     - DOCKER_IMAGE_TAG=$(grep "DOCKER_IMAGE_TAG=" build.properties|awk -F"=" '{print $2}')
+stages:
+  - build docker image
+  - push master
+  - push branch
 
 jobs:
   include:
@@ -16,7 +20,8 @@ jobs:
       before_script:
       - echo "${DOCKER_PASSWORD_QUAY}" | docker login quay.io -u "${DOCKER_USERNAME_QUAY}" --password-stdin
       - docker build -t ${DOCKER_IMAGE_REPOSITORY} .
-    - name: "Tag and push"
+    - stage: push master
+      name: "Tag and push"
       if: branch = master
       script:
       - docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-release-candidate";
@@ -30,7 +35,8 @@ jobs:
       - |
         if [[ $TRAVIS_COMMIT_MESSAGE == *"release"* ]]; then docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-release-candidate" && echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin && docker push "alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}" && docker push "alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}" && docker push "alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG_SHORT_NAME}"
              fi
-    - name: "Tag and push $TRAVIS_BRANCH"
+    - stage: push branch
+      name: "Tag and push branch"
       if: NOT branch = master
       script:
       - echo $TRAVIS_BRANCH;
