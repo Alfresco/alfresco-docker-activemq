@@ -7,6 +7,7 @@ env:
     - DOCKER_IMAGE_TAG=$(grep DOCKER_IMAGE_TAG build.properties|awk -F"=" '{print $2}')
 
 before_install:
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker build .
 
 after_script:
@@ -17,6 +18,9 @@ before_deploy:
   - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}"
   - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG_SHORT_NAME}"
 
+jobs:
+  include:
+    - stage: build docker image
 deploy:
   provider: script
   script: docker push "${DOCKER_IMAGE_TAG}-release-candidate" && docker push "${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}" && docker push "${DOCKER_IMAGE_TAG_SHORT_NAME}"
