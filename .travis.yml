@@ -13,19 +13,21 @@ env:
     - DOCKER_IMAGE_REPOSITORY=$(grep DOCKER_IMAGE_REPOSITORY build.properties|awk -F"=" '{print $2}')
     - DOCKER_IMAGE_TAG=$(grep DOCKER_IMAGE_TAG build.properties|awk -F"=" '{print $2}')
 
-before_install:
-  - echo "$DOCKER_PASSWORD" | docker login quay.io -u "$DOCKER_USERNAME" --password-stdin
-  - docker build .
-
-after_script:
-  - docker images
-
-before_deploy:
-  - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG}-release-candidate"
-  - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}"
-  - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG_SHORT_NAME}"
-
 jobs:
   include:
     - stage: build docker image
-      script: docker push "${DOCKER_IMAGE_TAG}-release-candidate" && docker push "${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}" && docker push "${DOCKER_IMAGE_TAG_SHORT_NAME}"
+      name: "Build"
+      before_script:
+      - echo "$DOCKER_PASSWORD" | docker login quay.io -u "$DOCKER_USERNAME" --password-stdin
+      script:
+      - docker build .
+    - stage: Tag docker image
+      name: "Tag"
+      script:
+      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG}-release-candidate"
+      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}"
+      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG_SHORT_NAME}"
+    - stage: Push docker images to quay
+      name: "Push images to quay"
+      script: 
+      - docker push "${DOCKER_IMAGE_TAG}-release-candidate" && docker push "${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}" && docker push "${DOCKER_IMAGE_TAG_SHORT_NAME}"
