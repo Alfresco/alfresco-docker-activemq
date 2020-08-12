@@ -20,7 +20,7 @@ jobs:
       before_script:
       - echo "$DOCKER_PASSWORD" | docker login quay.io -u "$DOCKER_USERNAME" --password-stdin
       script:
-      - docker build .
+      - docker build -t ${DOCKER_IMAGE_REPOSITORY} .
       - echo ${DOCKER_IMAGE_REPOSITORY}
       - echo ${DOCKER_IMAGE_TAG_SHORT_NAME}
       - echo ${DOCKER_IMAGE_TAG}
