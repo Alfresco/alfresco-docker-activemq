@@ -1,8 +1,8 @@
 language: ruby
 
-branches:
-  only:
-    - travis
+#branches:
+#  only:
+#    - travis
 
 services:
   - docker
@@ -13,18 +13,28 @@ env:
     - DOCKER_IMAGE_REPOSITORY=$(grep DOCKER_IMAGE_REPOSITORY build.properties|awk -F"=" '{print $2}')
     - DOCKER_IMAGE_TAG=$(grep "DOCKER_IMAGE_TAG=" build.properties|awk -F"=" '{print $2}')
 
+master
+
 jobs:
   include:
     - stage: build docker image
       name: "Build"
       before_script:
-      - echo "$DOCKER_PASSWORD" | docker login quay.io -u "$DOCKER_USERNAME" --password-stdin
+      - echo "$DOCKER_PASSWORD_QUAY" | docker login quay.io -u "$DOCKER_USERNAME_QUAY" --password-stdin
       script:
       - docker build -t ${DOCKER_IMAGE_REPOSITORY} .
       - echo ${DOCKER_IMAGE_REPOSITORY}
       - echo ${DOCKER_IMAGE_TAG_SHORT_NAME}
       - echo ${DOCKER_IMAGE_TAG}
-      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG}-release-candidate"
-      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}"
-      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "${DOCKER_IMAGE_TAG_SHORT_NAME}"
+      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/alfresco-activemq:${DOCKER_IMAGE_TAG}-release-candidate"
+      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/alfresco-activemq:${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}"
+      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/alfresco-activemq:${DOCKER_IMAGE_TAG_SHORT_NAME}"
       - docker push "${DOCKER_IMAGE_TAG}-release-candidate" && docker push "${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}" && docker push "${DOCKER_IMAGE_TAG_SHORT_NAME}"
+
+
+# script: if [[ $TRAVIS_COMMIT_MESSAGE == *"release"* ]]; 
+#then 
+#echo "$DOCKER_PASSWORD" | docker login quay.io -u "$DOCKER_USERNAME" --password-stdin
+#docker push "${DOCKER_IMAGE_TAG}-release-candidate"
+#; fi ;
+
