@@ -1,8 +1,8 @@
 language: ruby
 
-#branches:
-#  only:
-#    - travis
+branches:
+  only:
+    - travis
 
 services:
   - docker
