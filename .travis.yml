@@ -25,10 +25,11 @@ jobs:
       - echo ${DOCKER_IMAGE_REPOSITORY}
       - echo ${DOCKER_IMAGE_TAG_SHORT_NAME}
       - echo ${DOCKER_IMAGE_TAG}
-      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-release-candidate"
-      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}"
-      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG_SHORT_NAME}"
-      - docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-release-candidate"
-      - docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}"
-      - docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG_SHORT_NAME}"
+      - echo ${TRAVIS_JOB_ID}
+#      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-release-candidate"
+#      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}"
+#      - docker tag "${DOCKER_IMAGE_REPOSITORY}" "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG_SHORT_NAME}"
+#      - docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-release-candidate"
+#      - docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}-${TRAVIS_JOB_ID}"
+#      - docker push "quay.io/alfresco/${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG_SHORT_NAME}"
 
