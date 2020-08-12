@@ -11,7 +11,7 @@ env:
   global:
     - DOCKER_IMAGE_TAG_SHORT_NAME=$(grep DOCKER_IMAGE_TAG_SHORT_NAME build.properties|awk -F"=" '{print $2}')
     - DOCKER_IMAGE_REPOSITORY=$(grep DOCKER_IMAGE_REPOSITORY build.properties|awk -F"=" '{print $2}')
-    - DOCKER_IMAGE_TAG=$(grep DOCKER_IMAGE_TAG build.properties|awk -F"=" '{print $2}')
+    - DOCKER_IMAGE_TAG=$(grep "DOCKER_IMAGE_TAG=" build.properties|awk -F"=" '{print $2}')
 
 jobs:
   include:
