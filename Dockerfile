@@ -1,14 +1,15 @@
-# Alfresco Anaxes Shipyard ActiveMQ Image
-#
-# Version 0.1
+# Alfresco ActiveMQ Image
+FROM alfresco/alfresco-base-java:8.0.202-oracle-centos-8@sha256:9d1e485d528dc0844073805ae21cba9f7bfb94b05c53d0227607aa230336979a
 
-# This is an initial iteration and subject to change
-FROM quay.io/alfresco/alfresco-base-java:8u181-oracle-centos-7-ebbcd20c6bf4
-
-LABEL name="Alfresco ActiveMQ" \
-    vendor="Alfresco" \
-    license="Various" \
-    build-date="unset"
+LABEL org.label-schema.schema-version="1.0" \
+	org.label-schema.name="Alfresco ActiveMQ" \
+	org.label-schema.vendor="Alfresco" \
+	org.label-schema.build-date="$CREATED" \
+	org.opencontainers.image.title="Alfresco ActiveMQ" \
+	org.opencontainers.image.vendor="Alfresco" \
+	org.opencontainers.image.revision="$REVISION" \
+	org.opencontainers.image.source="https://github.com/Alfresco/alfresco-docker-activemq" \
+	org.opencontainers.image.created="$CREATED"
 
 # Set default user information
 ARG GROUPNAME=Alfresco
