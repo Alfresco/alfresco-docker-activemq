@@ -1,5 +1,6 @@
 # Alfresco ActiveMQ Image
-FROM alfresco/alfresco-base-java:8.0.202-oracle-centos-8@sha256:9d1e485d528dc0844073805ae21cba9f7bfb94b05c53d0227607aa230336979a
+# Base image: 11.0.10-openjdk-centos-8
+FROM alfresco/alfresco-base-java@sha256:9fbcc4dfd0fd0cc5cdeb26cc5d5added34ff1fad46de4ed682542af8309978fe
 
 LABEL org.label-schema.schema-version="1.0" \
 	org.label-schema.name="Alfresco ActiveMQ" \
@@ -22,7 +23,7 @@ ENV ACTIVEMQ_BASE="/opt/activemq"
 ENV ACTIVEMQ_CONF="/opt/activemq/conf"
 ENV ACTIVEMQ_DATA="/opt/activemq/data"
 
-ENV ACTIVEMQ_VERSION="5.15.14"
+ENV ACTIVEMQ_VERSION="5.16.1"
 ENV DOWNLOAD_URL="https://artifacts.alfresco.com/nexus/service/local/repositories/thirdparty/content/org/apache/apache-activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
 
 RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq  && \
