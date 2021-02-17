@@ -15,7 +15,7 @@ jobs:
       name: "Build"
       before_script:
       - echo "${DOCKER_PASSWORD_QUAY}" | docker login quay.io -u "${DOCKER_USERNAME_QUAY}" --password-stdin
-      - docker build -t ${DOCKER_IMAGE_REPOSITORY} .
+      - docker build --build-arg REVISION=$TRAVIS_COMMIT --build-arg CREATED=$(date -u +'%Y-%m-%dT%H:%M:%SZ') -t ${DOCKER_IMAGE_REPOSITORY} .
       script:
       - |
         if [[ $TRAVIS_BRANCH == master ]]; then 
