@@ -7,6 +7,8 @@ ACTIVEMQ_HOME=$1
 sed -i "s/user: user, user//g" ${ACTIVEMQ_HOME}/conf/jetty-realm.properties
 # Remove guest from accessing broker
 sed -i "s/guest.*//g" ${ACTIVEMQ_HOME}/conf/credentials.properties
+# Fix for accessing active mq console
+sed "s/127.0.0.1/0.0.0.0/g" ${ACTIVEMQ_HOME}/conf/jetty.xml
 
 # Change admin password if set vie env variable
 if [ ! -z "${ACTIVEMQ_ADMIN_LOGIN}" ] && [ ! -z "${ACTIVEMQ_ADMIN_PASSWORD}" ]; then
