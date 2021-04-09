@@ -30,10 +30,12 @@ RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq  && \
     mv /tmp/apache-activemq-${ACTIVEMQ_VERSION}/* ${ACTIVEMQ_HOME} && \
     rm -rf /tmp/activemq.tar.gz
 
+ADD init.sh ${ACTIVEMQ_HOME}
+
 RUN groupadd -g ${GROUPID} ${GROUPNAME} && \
     useradd -u ${USERID} -G ${GROUPNAME} ${USERNAME} && \
     chgrp -R ${GROUPNAME} ${ACTIVEMQ_HOME} && \
-    chown -h ${USERNAME}:${GROUPNAME} $ACTIVEMQ_HOME && \
+    chown -h ${USERNAME}:${GROUPNAME} -R $ACTIVEMQ_HOME && \
     chown ${USERNAME}:${GROUPNAME} ${ACTIVEMQ_DATA}/activemq.log && \
     chmod g+rwx ${ACTIVEMQ_DATA}
 
@@ -51,8 +53,6 @@ VOLUME ["/var/log/activemq"]
 VOLUME ["${ACTIVEMQ_CONF}"]
 
 WORKDIR ${ACTIVEMQ_HOME}
-ADD init.sh ${ACTIVEMQ_HOME}
-CMD ./init.sh ${ACTIVEMQ_HOME}
 
 USER ${USERNAME}
-CMD ${ACTIVEMQ_HOME}/bin/activemq console
+CMD ./init.sh ${ACTIVEMQ_HOME}
