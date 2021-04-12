@@ -1,4 +1,4 @@
-FROM alfresco/alfresco-base-java:11.0.10-openjdk-centos-8@sha256:343c8f63cf80c7af51785b93d6972b0c00087a1c0b995098cb8285c4d9db74b5
+FROM quay.io/alfresco/alfresco-base-java:11.0.10-openjdk-centos-8@sha256:343c8f63cf80c7af51785b93d6972b0c00087a1c0b995098cb8285c4d9db74b5
 
 LABEL org.label-schema.schema-version="1.0" \
 	org.label-schema.name="Alfresco ActiveMQ" \
@@ -30,10 +30,12 @@ RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq  && \
     mv /tmp/apache-activemq-${ACTIVEMQ_VERSION}/* ${ACTIVEMQ_HOME} && \
     rm -rf /tmp/activemq.tar.gz
 
+ADD init.sh ${ACTIVEMQ_HOME}
+
 RUN groupadd -g ${GROUPID} ${GROUPNAME} && \
     useradd -u ${USERID} -G ${GROUPNAME} ${USERNAME} && \
     chgrp -R ${GROUPNAME} ${ACTIVEMQ_HOME} && \
-    chown -h ${USERNAME}:${GROUPNAME} $ACTIVEMQ_HOME && \
+    chown -h ${USERNAME}:${GROUPNAME} -R $ACTIVEMQ_HOME && \
     chown ${USERNAME}:${GROUPNAME} ${ACTIVEMQ_DATA}/activemq.log && \
     chmod g+rwx ${ACTIVEMQ_DATA}
 
@@ -51,8 +53,6 @@ VOLUME ["/var/log/activemq"]
 VOLUME ["${ACTIVEMQ_CONF}"]
 
 WORKDIR ${ACTIVEMQ_HOME}
-ADD init.sh ${ACTIVEMQ_HOME}
-CMD ./init.sh ${ACTIVEMQ_HOME}
 
 USER ${USERNAME}
-CMD ${ACTIVEMQ_HOME}/bin/activemq console
+CMD ./init.sh ${ACTIVEMQ_HOME}
