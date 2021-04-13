@@ -10,6 +10,7 @@ sed -i "s/guest.*//g" ${ACTIVEMQ_HOME}/conf/credentials.properties
 
 # Change admin password if set vie env variable
 if [ ! -z "${ACTIVEMQ_ADMIN_LOGIN}" ] && [ ! -z "${ACTIVEMQ_ADMIN_PASSWORD}" ]; then
+  sed -i "s/127.0.0.1/0.0.0.0/g" ${ACTIVEMQ_HOME}/conf/jetty.xml
   sed -i "s/admin=.*/"${ACTIVEMQ_ADMIN_LOGIN}"="${ACTIVEMQ_ADMIN_PASSWORD}"/g" ${ACTIVEMQ_HOME}/conf/users.properties
   sed -i "s/admin.*/"${ACTIVEMQ_ADMIN_LOGIN}": "${ACTIVEMQ_ADMIN_PASSWORD}", admin/g" ${ACTIVEMQ_HOME}/conf/jetty-realm.properties
   sed -i "s/activemq.username=.*/activemq.username="${ACTIVEMQ_ADMIN_LOGIN}"/g" ${ACTIVEMQ_HOME}/conf/credentials.properties
@@ -23,3 +24,5 @@ fi
 if [ ! -z "${ACTIVEMQ_BROKER_NAME}" ]; then
   sed -i "s/brokerName=\"localhost\"/brokerName=\""${ACTIVEMQ_BROKER_NAME}"\"/g" ${ACTIVEMQ_HOME}/conf/activemq.xml
 fi
+
+$ACTIVEMQ_HOME/bin/activemq console
