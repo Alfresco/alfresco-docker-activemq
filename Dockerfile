@@ -1,4 +1,4 @@
-FROM quay.io/alfresco/alfresco-base-java:11.0.10-openjdk-centos-8@sha256:343c8f63cf80c7af51785b93d6972b0c00087a1c0b995098cb8285c4d9db74b5
+FROM alfresco/alfresco-base-java:11.0.10-openjdk-centos-8@sha256:2faecdacb239cf0a4721bc198538f365033d7e6c9f735b8cec96d7c995ed7345
 
 LABEL org.label-schema.schema-version="1.0" \
 	org.label-schema.name="Alfresco ActiveMQ" \
@@ -22,13 +22,19 @@ ENV ACTIVEMQ_CONF="/opt/activemq/conf"
 ENV ACTIVEMQ_DATA="/opt/activemq/data"
 
 ENV ACTIVEMQ_VERSION="5.16.1"
-ENV DOWNLOAD_URL="https://artifacts.alfresco.com/nexus/service/local/repositories/thirdparty/content/org/apache/apache-activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
+ENV DOWNLOAD_URL="https://archive.apache.org/dist/activemq/5.16.1/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
+ENV DOWNLOAD_ASC_URL="${DOWNLOAD_URL}.asc"
+ENV DOWNLOAD_KEYS_URL="https://downloads.apache.org/activemq/KEYS"
 
-RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq  && \
-    curl ${DOWNLOAD_URL} -o /tmp/activemq.tar.gz && \
+RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
+    curl ${DOWNLOAD_URL} -so /tmp/activemq.tar.gz && \
+    curl ${DOWNLOAD_ASC_URL} -so /tmp/activemq.tar.gz.asc && \
+    curl ${DOWNLOAD_KEYS_URL} -so /tmp/KEYS && \
+    gpg --import /tmp/KEYS && \
+    gpg --verify /tmp/activemq.tar.gz.asc /tmp/activemq.tar.gz && \
     tar -xzf /tmp/activemq.tar.gz -C /tmp && \
     mv /tmp/apache-activemq-${ACTIVEMQ_VERSION}/* ${ACTIVEMQ_HOME} && \
-    rm -rf /tmp/activemq.tar.gz
+    rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS
 
 ADD init.sh ${ACTIVEMQ_HOME}
 
