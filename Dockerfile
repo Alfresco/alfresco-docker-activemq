@@ -1,4 +1,9 @@
-FROM alfresco/alfresco-base-java:11.0.12-centos-7@sha256:6abdbfd14492fb78ae5d865eb25627bb241b11da406ef8df91a77716a3538f36
+ARG JDIST
+ARG JAVA_MAJOR
+ARG DISTRIB_NAME
+ARG DISTRIB_MAJOR
+
+FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR}
 
 LABEL org.label-schema.schema-version="1.0" \
 	org.label-schema.name="Alfresco ActiveMQ" \
@@ -15,16 +20,18 @@ ARG GROUPNAME=Alfresco
 ARG GROUPID=1000
 ARG USERNAME=amq
 ARG USERID=33031
+ARG ACTIVEMQ_VERSION=5.16.4
 
 ENV ACTIVEMQ_HOME="/opt/activemq"
 ENV ACTIVEMQ_BASE="/opt/activemq"
 ENV ACTIVEMQ_CONF="/opt/activemq/conf"
 ENV ACTIVEMQ_DATA="/opt/activemq/data"
 
-ENV ACTIVEMQ_VERSION="5.16.1"
-ENV DOWNLOAD_URL="https://archive.apache.org/dist/activemq/5.16.1/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
+ENV DOWNLOAD_URL="https://archive.apache.org/dist/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
 ENV DOWNLOAD_ASC_URL="${DOWNLOAD_URL}.asc"
 ENV DOWNLOAD_KEYS_URL="https://downloads.apache.org/activemq/KEYS"
+
+ENV LC_ALL=C
 
 RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
     curl ${DOWNLOAD_URL} -so /tmp/activemq.tar.gz && \
