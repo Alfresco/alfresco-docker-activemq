@@ -9,7 +9,3 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
-    ignore:
-      - dependency-name: "alfresco/alfresco-base-java"
-        versions:
-          - ">= 11"      
