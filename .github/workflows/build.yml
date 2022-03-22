@@ -2,8 +2,11 @@ name: build
 on:
   push:
     branches:
-      - OPSEXP-[0-9]+**
       - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
 env:
   IMAGE_REGISTRY_NAMESPACE: alfresco
   IMAGE_REPOSITORY: alfresco-activemq
@@ -81,7 +84,7 @@ jobs:
           tags: |
             quay.io/${{ env.IMAGE_REGISTRY_NAMESPACE }}/${{ env.IMAGE_REPOSITORY }}:${{ steps.vars.outputs.image_tag }}-${{ steps.vars.outputs.image_anchor }}
             quay.io/${{ env.IMAGE_REGISTRY_NAMESPACE }}/${{ env.IMAGE_REPOSITORY }}:${{ steps.vars.outputs.image_tag }}
-          target: TOMCAT_BASE_IMAGE
+          target: ACTIVEMQ_IMAGE
       - id: dh_push
         if: contains(github.event.head_commit.message, '[release]') && github.ref_name == 'master'
         name: Build and push to Docker Hub
@@ -100,4 +103,4 @@ jobs:
           tags: |
             ${{ env.IMAGE_REGISTRY_NAMESPACE }}/${{ env.IMAGE_REPOSITORY }}:${{ steps.vars.outputs.image_tag }}-${{ steps.vars.outputs.image_anchor }}
             ${{ env.IMAGE_REGISTRY_NAMESPACE }}/${{ env.IMAGE_REPOSITORY }}:${{ steps.vars.outputs.image_tag }}
-          target: TOMCAT_BASE_IMAGE
+          target: ACTIVEMQ_IMAGE
