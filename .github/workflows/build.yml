@@ -31,7 +31,11 @@ jobs:
         jdist:
           - jre
         activemq_version:
+          - 5.16.5
           - 5.17.1
+        exclude:
+          - java_major: 17
+            activemq_version: 5.16.5
     runs-on: ubuntu-latest
     needs: pre-commit
     steps:
