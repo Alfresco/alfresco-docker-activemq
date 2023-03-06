@@ -32,7 +32,7 @@ jobs:
           - jre
         activemq_version:
           - 5.16.5
-          - 5.17.1
+          - 5.17.4
         exclude:
           - java_major: 17
             activemq_version: 5.16.5
