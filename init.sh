@@ -27,3 +27,16 @@ if [ ! -z "${ACTIVEMQ_BROKER_NAME}" ]; then
 fi
 
 $ACTIVEMQ_HOME/bin/activemq console
+
+# Store the PID of the ActiveMQ process
+activemq_pid=$!
+
+# Function activemq_stop to gracefully stop ActiveMQ
+function activemq_stop {
+  echo "Stopping ActiveMQ gracefully"
+  kill -TERM ${activemq_pid}
+  exit 0
+}
+
+#Set the trap to call the activemq_stop function when SIGTERM is received
+trap activemq_stop SIGTERM
