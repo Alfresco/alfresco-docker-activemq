@@ -26,7 +26,7 @@ if [ ! -z "${ACTIVEMQ_BROKER_NAME}" ]; then
   sed -i "s/brokerName=\"localhost\"/brokerName=\""${ACTIVEMQ_BROKER_NAME}"\"/g" ${ACTIVEMQ_HOME}/conf/activemq.xml
 fi
 
-$ACTIVEMQ_HOME/bin/activemq console
+$ACTIVEMQ_HOME/bin/activemq console &
 
 # Function activemq_stop to gracefully stop ActiveMQ
 function activemq_stop {
