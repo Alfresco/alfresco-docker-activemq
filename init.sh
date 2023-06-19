@@ -10,7 +10,7 @@ sed -i "s/guest.*//g" ${ACTIVEMQ_HOME}/conf/credentials.properties
 # Allow all connections in jetty
 sed -i "s/127.0.0.1/0.0.0.0/g" ${ACTIVEMQ_HOME}/conf/jetty.xml
 
-# Change admin password if set vie env variable
+# Change admin password if set via env variable
 if [ ! -z "${ACTIVEMQ_ADMIN_LOGIN}" ] && [ ! -z "${ACTIVEMQ_ADMIN_PASSWORD}" ]; then
   sed -i "s/admin=.*/"${ACTIVEMQ_ADMIN_LOGIN}"="${ACTIVEMQ_ADMIN_PASSWORD}"/g" ${ACTIVEMQ_HOME}/conf/users.properties
   sed -i "s/admin.*/"${ACTIVEMQ_ADMIN_LOGIN}": "${ACTIVEMQ_ADMIN_PASSWORD}", admin/g" ${ACTIVEMQ_HOME}/conf/jetty-realm.properties
@@ -26,4 +26,16 @@ if [ ! -z "${ACTIVEMQ_BROKER_NAME}" ]; then
   sed -i "s/brokerName=\"localhost\"/brokerName=\""${ACTIVEMQ_BROKER_NAME}"\"/g" ${ACTIVEMQ_HOME}/conf/activemq.xml
 fi
 
-$ACTIVEMQ_HOME/bin/activemq console
+$ACTIVEMQ_HOME/bin/activemq console &
+
+# Function activemq_stop to gracefully stop ActiveMQ
+function activemq_stop {
+  echo "Stopping ActiveMQ gracefully"
+  $ACTIVEMQ_HOME/bin/activemq stop
+  exit 0
+}
+
+#Set the trap to call the activemq_stop function when SIGTERM is received
+trap activemq_stop SIGTERM
+
+wait
