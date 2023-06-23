@@ -21,12 +21,9 @@ jobs:
     strategy:
       matrix:
         base_image:
-          - flavor: centos
-            major: 7
           - flavor: rockylinux
             major: 8
         java_major:
-          - 11
           - 17
         jdist:
           - jre
