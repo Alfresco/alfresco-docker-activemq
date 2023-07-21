@@ -1,4 +1,5 @@
-name: build
+name: Docker Build
+
 on:
   push:
     branches:
@@ -7,9 +8,11 @@ on:
     branches:
       - master
   workflow_dispatch:
+
 env:
   IMAGE_REGISTRY_NAMESPACE: alfresco
   IMAGE_REPOSITORY: alfresco-activemq
+
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
@@ -27,63 +30,68 @@ jobs:
           - 17
         jdist:
           - jre
-        activemq_version:
-          - 5.16.5
-          - 5.17.4
-        exclude:
-          - java_major: 17
-            activemq_version: 5.16.5
+        activemq_base_version:
+          - 5.16
+          - 5.17
     runs-on: ubuntu-latest
     needs: pre-commit
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-qemu-action@v2
       - uses: docker/setup-buildx-action@v2
+
       - id: vars
         name: Compute Image Tag
-        env:
-          IMAGE_BASE_NAME: ${{ matrix.activemq_version }}-${{ matrix.jdist }}${{ matrix.java_major }}-${{ matrix.base_image.flavor }}${{ matrix.base_image.major }}
         run: |
+          ACTIVEMQ_VERSION=$(jq -r .activemq_version versions/activemq-${{ matrix.activemq_base_version }}.json)
+          echo "activemq_version=$ACTIVEMQ_VERSION" >> $GITHUB_OUTPUT
+
+          TAG_BASE_NAME="$ACTIVEMQ_VERSION-${{ matrix.jdist }}${{ matrix.java_major }}-${{ matrix.base_image.flavor }}${{ matrix.base_image.major }}"
+
           if [[ "${{ github.ref_name }}" != "master" ]]
           then
-            echo "image_tag=${IMAGE_BASE_NAME}-${GITHUB_REF_NAME//\//-}" >> $GITHUB_OUTPUT
+            echo "image_tag=${TAG_BASE_NAME}-${GITHUB_REF_NAME//\//-}" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event.head_commit.message }}" =~ .*\[release\].* ]]
           then
-            echo "image_tag=$IMAGE_BASE_NAME" >> $GITHUB_OUTPUT
+            echo "image_tag=$TAG_BASE_NAME" >> $GITHUB_OUTPUT
           else
-            echo "image_tag=${IMAGE_BASE_NAME}-release-candidate" >> $GITHUB_OUTPUT
+            echo "image_tag=${TAG_BASE_NAME}-release-candidate" >> $GITHUB_OUTPUT
           fi
           echo "image_created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
           echo "image_anchor=$(date -u +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+
       - name: Login to quay.io
         uses: docker/login-action@v2
         with:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_PASSWORD }}
+
       - name: Login to docker.io
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Build and push to quay.io
         uses: docker/build-push-action@v3
         with:
           push: true
           build-args: |
             no-cache=true
-            ACTIVEMQ_VERSION=${{ matrix.activemq_version }}
+            ACTIVEMQ_VERSION=${{ steps.vars.outputs.activemq_version }}
             JDIST=${{ matrix.jdist }}
             DISTRIB_NAME=${{ matrix.base_image.flavor }}
             DISTRIB_MAJOR=${{ matrix.base_image.major }}
             JAVA_MAJOR=${{ matrix.java_major }}
-            REVISION=${{ github.run_number }}
+            REVISION=${{ github.run_number }}
             CREATED=${{ steps.vars.outputs.image_created }}
           tags: |
             quay.io/${{ env.IMAGE_REGISTRY_NAMESPACE }}/${{ env.IMAGE_REPOSITORY }}:${{ steps.vars.outputs.image_tag }}-${{ steps.vars.outputs.image_anchor }}
             quay.io/${{ env.IMAGE_REGISTRY_NAMESPACE }}/${{ env.IMAGE_REPOSITORY }}:${{ steps.vars.outputs.image_tag }}
           target: ACTIVEMQ_IMAGE
           platforms: linux/amd64,linux/arm64/v8
+
       - name: Push Image to docker.io
         if: contains(github.event.head_commit.message, '[release]') && github.ref_name == 'master'
         uses: akhilerm/tag-push-action@v2.0.0
