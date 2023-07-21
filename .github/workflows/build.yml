@@ -18,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
       - uses: Alfresco/alfresco-build-tools/.github/actions/pre-commit@v2.8.0
+
   docker:
     name: activemq ${{ matrix.activemq_base_version }}
     strategy:
@@ -76,7 +76,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push to quay.io
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           push: true
           build-args: |
