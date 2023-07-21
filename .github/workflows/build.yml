@@ -91,7 +91,9 @@ jobs:
           tags: |
             quay.io/${{ env.IMAGE_REGISTRY_NAMESPACE }}/${{ env.IMAGE_REPOSITORY }}:${{ steps.vars.outputs.image_tag }}-${{ steps.vars.outputs.image_anchor }}
             quay.io/${{ env.IMAGE_REGISTRY_NAMESPACE }}/${{ env.IMAGE_REPOSITORY }}:${{ steps.vars.outputs.image_tag }}
-          labels: ${{ steps.vars.outputs.labels }}
+          labels: |
+            ${{ steps.vars.outputs.labels }}
+          provenance: false
           target: ACTIVEMQ_IMAGE
           platforms: linux/amd64,linux/arm64/v8
 
