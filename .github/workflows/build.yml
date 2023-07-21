@@ -21,6 +21,7 @@ jobs:
       - uses: actions/setup-python@v3
       - uses: Alfresco/alfresco-build-tools/.github/actions/pre-commit@v2.8.0
   docker:
+    name: activemq ${{ matrix.activemq_base_version }}
     strategy:
       matrix:
         base_image:
