@@ -1,0 +1,62 @@
+---
+name: Bump activemq versions
+
+on:
+  push:
+    paths:
+      - .github/workflows/bumpVersions.yml
+      - updatecli.d/**
+    branches:
+      - OPSEXP-**
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 6 * * MON'
+
+jobs:
+  updatecli:
+    name: activemq ${{ matrix.activemq_base_version }} version bump
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        activemq_base_version:
+          - 5.16
+          - 5.17
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # Required to trigger the main workflow once this workflow creates a PR
+          token: ${{ secrets.BOT_GITHUB_TOKEN }}
+
+      - name: Install updatecli
+        uses: updatecli/updatecli-action@v2
+        with:
+          version: v0.54.0
+
+      - name: Set ENV
+        run: |
+          echo "ACTIVEMQ_BASE_VERSION=${{ matrix.activemq_base_version }}" >> $GITHUB_ENV
+          echo "ACTIVEMQ_VERSION=$(jq -r '.activemq_version' versions/activemq-${{ matrix.activemq_base_version }}.json)" >> $GITHUB_ENV
+
+      - name: Run updatecli
+        run: |
+          updatecli apply
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        id: auto-commit-action
+        with:
+          branch: bump-activemq-${{ matrix.activemq_base_version }}
+          create_branch: true
+          push_options: '--force'
+          commit_user_name: ${{ vars.BOT_GITHUB_USERNAME }}
+          commit_user_email: ${{ vars.BOT_GITHUB_EMAIL }}
+
+      - name: Autocreate PR
+        if: steps.auto-commit-action.outputs.changes_detected == 'true'
+        run: |
+          if ! gh pr view --json url --jq .url; then
+            gh pr create --title "Bump activemq-${{ matrix.activemq_base_version }}" --body "Freshly served thanks to updatecli and GitHub Actions"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN }}
