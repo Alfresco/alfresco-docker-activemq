@@ -48,7 +48,7 @@ jobs:
           ACTIVEMQ_VERSION=$(jq -r .activemq_version versions/activemq-${{ matrix.activemq_base_version }}.json)
           echo "activemq_version=$ACTIVEMQ_VERSION" >> $GITHUB_OUTPUT
 
-          TAG_BASE_NAME="$ACTIVEMQ_VERSION-${{ matrix.jdist }}${{ matrix.java_major }}-${{ matrix.base_image.flavor }}${{ matrix.base_image.major }}"
+          TAG_BASE_NAME="${{ matrix.activemq_base_version }}-${{ matrix.jdist }}${{ matrix.java_major }}-${{ matrix.base_image.flavor }}${{ matrix.base_image.major }}"
 
           if [[ "${{ github.ref_name }}" != "master" ]]; then
             echo "image_tag=${TAG_BASE_NAME}-${GITHUB_REF_NAME//\//-}" >> $GITHUB_OUTPUT

@@ -2,25 +2,26 @@ ARG JDIST
 ARG JAVA_MAJOR
 ARG DISTRIB_NAME
 ARG DISTRIB_MAJOR
+ARG ACTIVEMQ_VERSION
 
 FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR} as ACTIVEMQ_IMAGE
 
 LABEL org.label-schema.schema-version="1.0" \
-	org.label-schema.name="Alfresco ActiveMQ" \
-	org.label-schema.vendor="Alfresco" \
-	org.label-schema.build-date="$CREATED" \
-	org.opencontainers.image.title="Alfresco ActiveMQ" \
-	org.opencontainers.image.vendor="Alfresco" \
-	org.opencontainers.image.revision="$REVISION" \
-	org.opencontainers.image.source="https://github.com/Alfresco/alfresco-docker-activemq" \
-	org.opencontainers.image.created="$CREATED"
+    org.label-schema.name="Alfresco ActiveMQ" \
+    org.label-schema.vendor="Alfresco" \
+    org.label-schema.build-date="$CREATED" \
+    org.opencontainers.image.title="Alfresco ActiveMQ" \
+    org.opencontainers.image.vendor="Alfresco" \
+    org.opencontainers.image.revision="$REVISION" \
+    org.opencontainers.image.source="https://github.com/Alfresco/alfresco-docker-activemq" \
+    org.opencontainers.image.created="$CREATED" \
+    org.opencontainers.image.version="$ACTIVEMQ_VERSION"
 
 # Set default user information
 ARG GROUPNAME=Alfresco
 ARG GROUPID=1000
 ARG USERNAME=amq
 ARG USERID=33031
-ARG ACTIVEMQ_VERSION=5.16.4
 
 ENV ACTIVEMQ_HOME="/opt/activemq"
 ENV ACTIVEMQ_BASE="/opt/activemq"
