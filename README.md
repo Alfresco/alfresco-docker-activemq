@@ -28,6 +28,10 @@ Example final image: `alfresco/alfresco-activemq:5.18-jre17-rockylinux8`
 
 > If you are using this base image in a public repository, please stick to the Docker Hub published image.
 
+### Image pinning
+
+The [pinning suggestions provided in alfresco-base-java](https://github.com/Alfresco/alfresco-docker-base-java/blob/master/README.md#image-pinning) are valid for this image too.
+
 ## Configuration parameters
 
 The following can be set via environment variables:
