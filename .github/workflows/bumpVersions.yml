@@ -22,6 +22,7 @@ jobs:
         activemq_base_version:
           - 5.16
           - 5.17
+          - 5.18
     steps:
       - name: Checkout
         uses: actions/checkout@v3
