@@ -2,9 +2,10 @@ ARG JDIST
 ARG JAVA_MAJOR
 ARG DISTRIB_NAME
 ARG DISTRIB_MAJOR
-ARG ACTIVEMQ_VERSION
 
 FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR} as ACTIVEMQ_IMAGE
+
+ARG ACTIVEMQ_VERSION
 
 LABEL org.label-schema.schema-version="1.0" \
     org.label-schema.name="Alfresco ActiveMQ" \
