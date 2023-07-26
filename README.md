@@ -5,10 +5,10 @@
 ![5.17-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/5.17-jre17-rockylinux8)
 ![5.16-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/5.16-jre17-rockylinux8)
 
-This repository contains the Dockerfile used to create the Alfresco ActiveMQ
-image that will be used by Alfresco engineering teams, other internal groups in
-the organisation, customers and partners to run the Alfresco Digital Business
-Platform.
+This repository produces multi-arch ActiveMQ images compatible with all the
+supported Alfresco versions that will be used by Alfresco engineering teams,
+other internal groups in the organisation, customers and partners to run the
+Alfresco Digital Business Platform.
 
 ## Quickstart
 
@@ -37,6 +37,8 @@ Built images are available on the following registries:
 Example final image: `alfresco/alfresco-activemq:5.18-jre17-rockylinux8`
 
 > If you are using this image in a public repository, please stick to the Docker Hub published image.
+
+Images are built for `amd64` and `arm64` architectures.
 
 ### Image pinning
 
