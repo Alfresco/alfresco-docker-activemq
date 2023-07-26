@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - OPSEXP-2186-fixup-release-and-expire
   pull_request:
     branches:
       - master
