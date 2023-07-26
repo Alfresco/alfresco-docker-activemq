@@ -21,10 +21,10 @@ Activemq version | Java version | OS           | Image tag                | Size
 [2]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.17-jre17-rockylinux8
 [3]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.18-jre17-rockylinux8
 
-> Additional tags available:
->
-> * `5.18.NN-jre17-rockylinux8` (full semver)
-> * `latest` which always point to the latest activemq version available
+Additional tags available:
+
+* `5.18.NN-jre17-rockylinux8` (full semver)
+* `latest` which always point to the latest activemq version available
 
 Built images are available on the following registries:
 
