@@ -44,7 +44,7 @@ jobs:
         run: |
           updatecli apply
 
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - uses: stefanzweifel/git-auto-commit-action@v5
         id: auto-commit-action
         with:
           branch: bump-activemq-${{ env.ACTIVEMQ_VERSION }}
