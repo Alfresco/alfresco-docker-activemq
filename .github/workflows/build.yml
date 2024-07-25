@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Alfresco/alfresco-build-tools/.github/actions/pre-commit@v5.22.3
+      - uses: Alfresco/alfresco-build-tools/.github/actions/pre-commit@v5.34.0
 
   docker:
     name: activemq ${{ matrix.activemq_base_version }}
@@ -94,7 +94,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           push: ${{ github.actor != 'dependabot[bot]' }}
           build-args: |
