@@ -96,7 +96,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          push: true
+          push: ${{ github.actor != 'dependabot[bot]' }}
           build-args: |
             ACTIVEMQ_VERSION=${{ steps.vars.outputs.activemq_version }}
             JDIST=${{ matrix.jdist }}
