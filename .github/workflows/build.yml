@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Alfresco/alfresco-build-tools/.github/actions/pre-commit@v5.34.0
+      - uses: Alfresco/alfresco-build-tools/.github/actions/pre-commit@v5.35.0
 
   docker:
     name: activemq ${{ matrix.activemq_base_version }}
