@@ -19,6 +19,13 @@ sources:
     transformers:
       - trimprefix: "activemq-"
 
+conditions:
+  archiveReady:
+    kind: file
+    sourceid: activemqTag
+    spec:
+      file: https://archive.apache.org/dist/activemq/{{ source `activemqTag` }}/apache-activemq-{{ source `activemqTag` }}-bin.tar.gz
+
 targets:
   activemqJson:
     name: Update version in json target
