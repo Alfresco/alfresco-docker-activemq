@@ -6,59 +6,31 @@ on:
     paths:
       - .github/workflows/bumpVersions.yml
       - updatecli.d/**
-    branches:
-      - OPSEXP-**
   workflow_dispatch:
   schedule:
     - cron:  '0 6 * * MON'
 
 jobs:
   updatecli:
-    name: activemq ${{ matrix.activemq_base_version }} version bump
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        activemq_base_version:
-          - 5.16
-          - 5.17
-          - 5.18
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          # Required to trigger the main workflow once this workflow creates a PR
-          token: ${{ secrets.BOT_GITHUB_TOKEN }}
 
       - name: Install Updatecli
         uses: Alfresco/alfresco-build-tools/.github/actions/setup-updatecli@v8.18.0
 
-      - name: Set updatecli required environment variables
-        run: |
-          echo "ACTIVEMQ_BASE_VERSION=${{ matrix.activemq_base_version }}" >> $GITHUB_ENV
+      - name: Updatecli scm cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: /tmp/updatecli
+          key: updatecli-v1-${{ hashFiles('updatecli.d/**') }}
+          restore-keys: |
+            updatecli-v1-
 
       - name: Run updatecli
-        run: |
-          updatecli apply
-
-      - name: Set environment variables after updatecli
-        run: |
-          echo "ACTIVEMQ_VERSION=$(jq -r '.activemq_version' versions/activemq-${{ matrix.activemq_base_version }}.json)" >> $GITHUB_ENV
-
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        id: auto-commit-action
-        with:
-          branch: bump-activemq-${{ env.ACTIVEMQ_VERSION }}
-          create_branch: true
-          push_options: '--force'
-          commit_user_name: ${{ vars.BOT_GITHUB_USERNAME }}
-          commit_user_email: ${{ vars.BOT_GITHUB_EMAIL }}
-
-      - name: Autocreate PR
-        if: steps.auto-commit-action.outputs.changes_detected == 'true'
-        run: |
-          if ! gh pr view --json url --jq .url; then
-            gh pr create --title "Bump activemq to ${{ env.ACTIVEMQ_VERSION }}" --body "Freshly served thanks to updatecli and GitHub Actions"
-          fi
         env:
-          GH_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN }}
+          UPDATECLI_GITHUB_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN }}
+          UPDATECLI_GITHUB_USERNAME: ${{ vars.BOT_GITHUB_USERNAME }}
+          UPDATECLI_GITHUB_EMAIL: ${{ vars.BOT_GITHUB_EMAIL }}
+        run: updatecli apply
