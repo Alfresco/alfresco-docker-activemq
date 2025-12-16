@@ -1,6 +1,6 @@
 name: "Bump activemq versions"
 
-{{ $activemqVersions := list "5.18" "5.17" "5.16" }}
+{{ $activemqVersions := list "6.2" "5.19" "5.18" "5.17" "5.16" }}
 
 scms:
   github:
