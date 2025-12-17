@@ -1,41 +1,102 @@
 #!/usr/bin/env bash
 set -e
 
-ACTIVEMQ_HOME=$1
+ACTIVEMQ_HOME="$1"
 
-# Remove standard user from access web console
-sed -i "s/user: user, user//g" ${ACTIVEMQ_HOME}/conf/jetty-realm.properties
-# Remove guest from accessing broker
-sed -i "s/guest.*//g" ${ACTIVEMQ_HOME}/conf/credentials.properties
-# Allow all connections in jetty
-sed -i "s/127.0.0.1/0.0.0.0/g" ${ACTIVEMQ_HOME}/conf/jetty.xml
-
-# Change admin password if set via env variable
-if [ ! -z "${ACTIVEMQ_ADMIN_LOGIN}" ] && [ ! -z "${ACTIVEMQ_ADMIN_PASSWORD}" ]; then
-  sed -i "s/admin=.*/"${ACTIVEMQ_ADMIN_LOGIN}"="${ACTIVEMQ_ADMIN_PASSWORD}"/g" ${ACTIVEMQ_HOME}/conf/users.properties
-  sed -i "s/admin.*/"${ACTIVEMQ_ADMIN_LOGIN}": "${ACTIVEMQ_ADMIN_PASSWORD}", admin/g" ${ACTIVEMQ_HOME}/conf/jetty-realm.properties
-  sed -i "s/activemq.username=.*/activemq.username="${ACTIVEMQ_ADMIN_LOGIN}"/g" ${ACTIVEMQ_HOME}/conf/credentials.properties
-  sed -i "s/activemq.password=.*/activemq.password="${ACTIVEMQ_ADMIN_PASSWORD}"/g" ${ACTIVEMQ_HOME}/conf/credentials.properties
-elif [ ! -z "${ACTIVEMQ_ADMIN_PASSWORD}" ]; then
-  sed -i "s/admin=.*/admin="${ACTIVEMQ_ADMIN_PASSWORD}"/g" ${ACTIVEMQ_HOME}/conf/users.properties
-  sed -i "s/admin.*/admin: "${ACTIVEMQ_ADMIN_PASSWORD}", admin/g" ${ACTIVEMQ_HOME}/conf/jetty-realm.properties
+if [[ -z "$ACTIVEMQ_HOME" ]]; then
+  echo "ERROR: ACTIVEMQ_HOME not provided"
+  exit 1
 fi
 
-# Set broker (hostname) name
-if [ ! -z "${ACTIVEMQ_BROKER_NAME}" ]; then
-  sed -i "s/brokerName=\"localhost\"/brokerName=\""${ACTIVEMQ_BROKER_NAME}"\"/g" ${ACTIVEMQ_HOME}/conf/activemq.xml
+CONF_DIR="${ACTIVEMQ_HOME}/conf"
+
+echo "Using ACTIVEMQ_HOME=${ACTIVEMQ_HOME}"
+
+# ------------------------------------------------
+# 1. Allow remote access to web console (Jetty)
+# ------------------------------------------------
+if [[ -f "${CONF_DIR}/jetty.xml" ]]; then
+  sed -i 's/127.0.0.1/0.0.0.0/g' "${CONF_DIR}/jetty.xml"
 fi
 
-$ACTIVEMQ_HOME/bin/activemq console &
+# ------------------------------------------------
+# 2. Ensure JAAS login.config exists
+# ------------------------------------------------
+if [[ ! -f "${CONF_DIR}/login.config" ]]; then
+  cat > "${CONF_DIR}/login.config" <<'EOF'
+activemq {
+  org.apache.activemq.jaas.PropertiesLoginModule required
+    org.apache.activemq.jaas.properties.user="users.properties"
+    org.apache.activemq.jaas.properties.group="groups.properties";
+};
+EOF
+fi
 
-# Function activemq_stop to gracefully stop ActiveMQ
+# ------------------------------------------------
+# 3. Enable JAAS plugin in ActiveMQ 5.x
+# (6.x already has it)
+# ------------------------------------------------
+if ! grep -q "jaasAuthenticationPlugin" "${CONF_DIR}/activemq.xml"; then
+  if grep -q "<plugins>" "${CONF_DIR}/activemq.xml"; then
+    sed -i '/<plugins>/a\
+    <jaasAuthenticationPlugin configuration="activemq"/>' \
+      "${CONF_DIR}/activemq.xml"
+  else
+    sed -i '/<\/broker>/i\
+  <plugins>\
+    <jaasAuthenticationPlugin configuration="activemq"/>\
+  </plugins>' \
+      "${CONF_DIR}/activemq.xml"
+  fi
+fi
+
+# ------------------------------------------------
+# 4. Configure admin user via JAAS
+# ------------------------------------------------
+if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
+
+  USERS_FILE="${CONF_DIR}/users.properties"
+  GROUPS_FILE="${CONF_DIR}/groups.properties"
+
+  touch "${USERS_FILE}" "${GROUPS_FILE}"
+
+  # Remove existing entry if present
+  sed -i "/^${ACTIVEMQ_ADMIN_LOGIN}=.*/d" "${USERS_FILE}"
+  sed -i "/admins=.*\b${ACTIVEMQ_ADMIN_LOGIN}\b.*/d" "${GROUPS_FILE}"
+
+  # Add admin user
+  echo "${ACTIVEMQ_ADMIN_LOGIN}=${ACTIVEMQ_ADMIN_PASSWORD}" >> "${USERS_FILE}"
+
+  # Add admin group mapping
+  if grep -q "^admins=" "${GROUPS_FILE}"; then
+    sed -i "s/^admins=.*/&,${ACTIVEMQ_ADMIN_LOGIN}/" "${GROUPS_FILE}"
+  else
+    echo "admins=${ACTIVEMQ_ADMIN_LOGIN}" >> "${GROUPS_FILE}"
+  fi
+fi
+
+# ------------------------------------------------
+# 5. Set broker name (5.x + 6.x)
+# ------------------------------------------------
+if [[ -n "${ACTIVEMQ_BROKER_NAME}" ]]; then
+  sed -i \
+    "s/brokerName=\"localhost\"/brokerName=\"${ACTIVEMQ_BROKER_NAME}\"/g" \
+    "${CONF_DIR}/activemq.xml"
+fi
+
+# ------------------------------------------------
+# 6. Start ActiveMQ
+# ------------------------------------------------
+"${ACTIVEMQ_HOME}/bin/activemq" console &
+
+# ------------------------------------------------
+# 7. Graceful shutdown handling
+# ------------------------------------------------
 function activemq_stop {
   echo "Stopping ActiveMQ gracefully"
-  $ACTIVEMQ_HOME/bin/activemq stop
+  "${ACTIVEMQ_HOME}/bin/activemq" stop
   exit 0
 }
 
-#Set the trap to call the activemq_stop function when SIGTERM is received
 trap activemq_stop SIGTERM
-
 wait
