@@ -51,7 +51,7 @@ if ! grep -q "jaasAuthenticationPlugin" "${CONF_DIR}/activemq.xml"; then
 fi
 
 # ------------------------------------------------
-# 4. Configure admin user via JAAS
+# 4. Configure admin user via JAAS (non-destructive)
 # ------------------------------------------------
 if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
 
@@ -60,15 +60,20 @@ if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
 
   touch "${USERS_FILE}" "${GROUPS_FILE}"
 
-  # Remove existing entry if present
+  # Remove default admin and existing user entry
+  sed -i '/^admin=/d' "${USERS_FILE}"
   sed -i "/^${ACTIVEMQ_ADMIN_LOGIN}=.*/d" "${USERS_FILE}"
-  sed -i "/admins=.*\b${ACTIVEMQ_ADMIN_LOGIN}\b.*/d" "${GROUPS_FILE}"
 
-  # Add admin user
+  # Add/update admin user
   echo "${ACTIVEMQ_ADMIN_LOGIN}=${ACTIVEMQ_ADMIN_PASSWORD}" >> "${USERS_FILE}"
 
-  # Add admin group mapping
-  if grep -q "^admins=" "${GROUPS_FILE}"; then
+  # Clean admin group mappings
+  sed -i 's/\badmin\b//g' "${GROUPS_FILE}"
+  sed -i "s/\b${ACTIVEMQ_ADMIN_LOGIN}\b//g" "${GROUPS_FILE}"
+  sed -i 's/,,/,/g; s/,$//; s/^,//' "${GROUPS_FILE}"
+
+  # Ensure admin is in admins group
+  if grep -q '^admins=' "${GROUPS_FILE}"; then
     sed -i "s/^admins=.*/&,${ACTIVEMQ_ADMIN_LOGIN}/" "${GROUPS_FILE}"
   else
     echo "admins=${ACTIVEMQ_ADMIN_LOGIN}" >> "${GROUPS_FILE}"
