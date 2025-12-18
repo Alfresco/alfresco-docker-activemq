@@ -63,27 +63,23 @@ if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
   # Remove default admin and existing user entry
   sed -i '/^admin=/d' "${USERS_FILE}"
   sed -i "/^${ACTIVEMQ_ADMIN_LOGIN}=.*/d" "${USERS_FILE}"
-
-  # Add/update admin user
   echo "${ACTIVEMQ_ADMIN_LOGIN}=${ACTIVEMQ_ADMIN_PASSWORD}" >> "${USERS_FILE}"
 
   # ----------------------------
-  # Groups: clean admins mapping only
+  # Groups: remove default admin and set target admin exactly
   # ----------------------------
+  # Remove any existing default or target admin from admins line
   sed -i -E '/^admins=/{
-    s/(^|,)(admin|'"${ACTIVEMQ_ADMIN_LOGIN}"')(,|$)/\1\3/g
+    s/(^|,)admin(,|$)//g
+    s/(^|,)'"${ACTIVEMQ_ADMIN_LOGIN}"'(,|$)//g
     s/,,+/,/g
     s/^admins=,*/admins=/
     s/,$//
   }' "${GROUPS_FILE}"
 
-  # ----------------------------
-  # Ensure admin exists exactly once
-  # ----------------------------
-  if grep -q '^admins=$' "${GROUPS_FILE}"; then
+  # Ensure admins line contains only the target admin
+  if grep -q '^admins=' "${GROUPS_FILE}"; then
     sed -i "s/^admins=.*/admins=${ACTIVEMQ_ADMIN_LOGIN}/" "${GROUPS_FILE}"
-  elif grep -q '^admins=' "${GROUPS_FILE}"; then
-    sed -i "s/^admins=.*/&,${ACTIVEMQ_ADMIN_LOGIN}/" "${GROUPS_FILE}"
   else
     echo "admins=${ACTIVEMQ_ADMIN_LOGIN}" >> "${GROUPS_FILE}"
   fi
