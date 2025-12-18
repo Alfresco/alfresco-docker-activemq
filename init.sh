@@ -70,7 +70,8 @@ if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
   # Clean admin group mappings
   sed -i 's/\badmin\b//g' "${GROUPS_FILE}"
   sed -i "s/\b${ACTIVEMQ_ADMIN_LOGIN}\b//g" "${GROUPS_FILE}"
-  sed -i 's/,,/,/g; s/,$//; s/^,//' "${GROUPS_FILE}"
+  sed -i 's/\(admins=\),*/\1/; s/,,*/,/g; s/,$//' "${GROUPS_FILE}"
+
 
   # Ensure admin is in admins group
   if grep -q '^admins=' "${GROUPS_FILE}"; then
