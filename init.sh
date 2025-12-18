@@ -20,26 +20,7 @@ if [[ -f "${CONF_DIR}/jetty.xml" ]]; then
 fi
 
 # ------------------------------------------------
-# 2 Force JAAS for Jetty Web Console (ActiveMQ 5.x)
-# ------------------------------------------------
-JETTY_XML="${CONF_DIR}/jetty.xml"
-JETTY_REALM="${CONF_DIR}/jetty-realm.properties"
-
-if [[ -f "${JETTY_XML}" && -f "${JETTY_REALM}" ]]; then
-  echo "Configuring Jetty to use JAAS instead of jetty-realm"
-
-  # Replace HashLoginService with JAASLoginService (idempotent)
-  sed -i '
-    /class="org.eclipse.jetty.security.HashLoginService"/{
-      s/org.eclipse.jetty.security.HashLoginService/org.eclipse.jetty.jaas.JAASLoginService/
-      s/<property name="config".*\/>//g
-      s|</bean>|  <property name="loginModuleName" value="activemq" />\n</bean>|
-    }
-  ' "${JETTY_XML}"
-fi
-
-# ------------------------------------------------
-# 3. Ensure JAAS login.config exists
+# 2. Ensure JAAS login.config exists
 # ------------------------------------------------
 if [[ ! -f "${CONF_DIR}/login.config" ]]; then
   cat > "${CONF_DIR}/login.config" <<'EOF'
@@ -52,7 +33,7 @@ EOF
 fi
 
 # ------------------------------------------------
-# 4. Enable JAAS plugin in ActiveMQ 5.x
+# 3. Enable JAAS plugin in ActiveMQ 5.x
 # (6.x already has it)
 # ------------------------------------------------
 if ! grep -q "jaasAuthenticationPlugin" "${CONF_DIR}/activemq.xml"; then
@@ -70,7 +51,7 @@ if ! grep -q "jaasAuthenticationPlugin" "${CONF_DIR}/activemq.xml"; then
 fi
 
 # ------------------------------------------------
-# 5. Configure admin user via JAAS (non-destructive)
+# 4. Configure admin user via JAAS (non-destructive)
 # ------------------------------------------------
 if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
 
@@ -105,7 +86,7 @@ if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
 fi
 
 # ------------------------------------------------
-# 6. Set broker name (5.x + 6.x)
+# 5. Set broker name (5.x + 6.x)
 # ------------------------------------------------
 if [[ -n "${ACTIVEMQ_BROKER_NAME}" ]]; then
   sed -i \
