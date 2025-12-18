@@ -86,7 +86,43 @@ if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
 fi
 
 # ------------------------------------------------
-# 5. Set broker name (5.x + 6.x)
+# 5. Secure Jetty realm for web console (ActiveMQ 5.x only)
+# ------------------------------------------------
+JETTY_REALM="${CONF_DIR}/jetty-realm.properties"
+CREDENTIALS_FILE="${CONF_DIR}/credentials.properties"
+
+# ActiveMQ 5.x has jetty-realm.properties
+# ActiveMQ 6.x does not
+if [[ -f "${JETTY_REALM}" ]]; then
+  echo "ActiveMQ 5.x detected – securing Jetty realm"
+
+  # Remove default 'user' role access
+  sed -i 's/^user:.*//g' "${JETTY_REALM}"
+
+  if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
+    # Remove any existing admin entry
+    sed -i '/^admin:/d' "${JETTY_REALM}"
+    sed -i "/^${ACTIVEMQ_ADMIN_LOGIN}:/d" "${JETTY_REALM}"
+
+    # Add target admin
+    echo "${ACTIVEMQ_ADMIN_LOGIN}: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" >> "${JETTY_REALM}"
+  fi
+
+  # Broker credentials file exists only in 5.x
+  if [[ -f "${CREDENTIALS_FILE}" ]]; then
+    sed -i '/^guest/d' "${CREDENTIALS_FILE}"
+
+    if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
+      sed -i "s/^activemq.username=.*/activemq.username=${ACTIVEMQ_ADMIN_LOGIN}/" "${CREDENTIALS_FILE}" || true
+      sed -i "s/^activemq.password=.*/activemq.password=${ACTIVEMQ_ADMIN_PASSWORD}/" "${CREDENTIALS_FILE}" || true
+    fi
+  fi
+else
+  echo "ActiveMQ 6.x detected – skipping Jetty realm hardening"
+fi
+
+# ------------------------------------------------
+# 6. Set broker name (5.x + 6.x)
 # ------------------------------------------------
 if [[ -n "${ACTIVEMQ_BROKER_NAME}" ]]; then
   sed -i \
