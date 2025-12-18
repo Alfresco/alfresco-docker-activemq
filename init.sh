@@ -67,14 +67,22 @@ if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
   # Add/update admin user
   echo "${ACTIVEMQ_ADMIN_LOGIN}=${ACTIVEMQ_ADMIN_PASSWORD}" >> "${USERS_FILE}"
 
-  # Clean admin group mappings
-  sed -i 's/\badmin\b//g' "${GROUPS_FILE}"
-  sed -i "s/\b${ACTIVEMQ_ADMIN_LOGIN}\b//g" "${GROUPS_FILE}"
-  sed -i 's/\(admins=\),*/\1/; s/,,*/,/g; s/,$//' "${GROUPS_FILE}"
+  # ----------------------------
+  # Groups: clean admins mapping only
+  # ----------------------------
+  sed -i -E '/^admins=/{
+    s/(^|,)(admin|'"${ACTIVEMQ_ADMIN_LOGIN}"')(,|$)/\1\3/g
+    s/,,+/,/g
+    s/^admins=,*/admins=/
+    s/,$//
+  }' "${GROUPS_FILE}"
 
-
-  # Ensure admin is in admins group
-  if grep -q '^admins=' "${GROUPS_FILE}"; then
+  # ----------------------------
+  # Ensure admin exists exactly once
+  # ----------------------------
+  if grep -q '^admins=$' "${GROUPS_FILE}"; then
+    sed -i "s/^admins=.*/admins=${ACTIVEMQ_ADMIN_LOGIN}/" "${GROUPS_FILE}"
+  elif grep -q '^admins=' "${GROUPS_FILE}"; then
     sed -i "s/^admins=.*/&,${ACTIVEMQ_ADMIN_LOGIN}/" "${GROUPS_FILE}"
   else
     echo "admins=${ACTIVEMQ_ADMIN_LOGIN}" >> "${GROUPS_FILE}"
