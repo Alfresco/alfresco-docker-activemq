@@ -70,4 +70,9 @@ VOLUME ["${ACTIVEMQ_CONF}"]
 WORKDIR ${ACTIVEMQ_HOME}
 
 USER ${USERNAME}
-CMD ./init.sh ${ACTIVEMQ_HOME}
+
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["activemq", "console"]

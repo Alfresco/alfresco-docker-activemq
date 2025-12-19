@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-ACTIVEMQ_HOME="$1"
-
-if [[ -z "$ACTIVEMQ_HOME" ]]; then
-  echo "ERROR: ACTIVEMQ_HOME not provided"
-  exit 1
-fi
+# ------------------------------------------------
+# Resolve ACTIVEMQ_HOME (must be set via ENV)
+# ------------------------------------------------
+ACTIVEMQ_HOME="${ACTIVEMQ_HOME:?ERROR: ACTIVEMQ_HOME not set}"
 
 CONF_DIR="${ACTIVEMQ_HOME}/conf"
 
@@ -68,7 +66,6 @@ if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
   # ----------------------------
   # Groups: remove default admin and set target admin exactly
   # ----------------------------
-  # Remove any existing default or target admin from admins line
   sed -i -E '/^admins=/{
     s/(^|,)admin(,|$)//g
     s/(^|,)'"${ACTIVEMQ_ADMIN_LOGIN}"'(,|$)//g
@@ -77,7 +74,6 @@ if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
     s/,$//
   }' "${GROUPS_FILE}"
 
-  # Ensure admins line contains only the target admin
   if grep -q '^admins=' "${GROUPS_FILE}"; then
     sed -i "s/^admins=.*/admins=${ACTIVEMQ_ADMIN_LOGIN}/" "${GROUPS_FILE}"
   else
@@ -91,8 +87,6 @@ fi
 JETTY_REALM="${CONF_DIR}/jetty-realm.properties"
 CREDENTIALS_FILE="${CONF_DIR}/credentials.properties"
 
-# ActiveMQ 5.x has jetty-realm.properties
-# ActiveMQ 6.x does not
 if [[ -f "${JETTY_REALM}" ]]; then
   echo "ActiveMQ 5.x detected – securing Jetty realm"
 
@@ -100,11 +94,8 @@ if [[ -f "${JETTY_REALM}" ]]; then
   sed -i 's/^user:.*//g' "${JETTY_REALM}"
 
   if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
-    # Remove any existing admin entry
     sed -i '/^admin:/d' "${JETTY_REALM}"
     sed -i "/^${ACTIVEMQ_ADMIN_LOGIN}:/d" "${JETTY_REALM}"
-
-    # Add target admin
     echo "${ACTIVEMQ_ADMIN_LOGIN}: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" >> "${JETTY_REALM}"
   fi
 
@@ -131,18 +122,7 @@ if [[ -n "${ACTIVEMQ_BROKER_NAME}" ]]; then
 fi
 
 # ------------------------------------------------
-# 6. Start ActiveMQ
+# 7. Exec command (PID 1)
 # ------------------------------------------------
-"${ACTIVEMQ_HOME}/bin/activemq" console &
-
-# ------------------------------------------------
-# 7. Graceful shutdown handling
-# ------------------------------------------------
-function activemq_stop {
-  echo "Stopping ActiveMQ gracefully"
-  "${ACTIVEMQ_HOME}/bin/activemq" stop
-  exit 0
-}
-
-trap activemq_stop SIGTERM
-wait
+echo "Executing: $*"
+exec "$@"
