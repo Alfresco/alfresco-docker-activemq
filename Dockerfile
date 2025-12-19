@@ -45,8 +45,6 @@ RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
     mv /tmp/apache-activemq-${ACTIVEMQ_VERSION}/* ${ACTIVEMQ_HOME} && \
     rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS
 
-ADD init.sh ${ACTIVEMQ_HOME}
-
 RUN groupadd -g ${GROUPID} ${GROUPNAME} && \
     useradd -u ${USERID} -G ${GROUPNAME} ${USERNAME} && \
     chgrp -R ${GROUPNAME} ${ACTIVEMQ_HOME} && \
@@ -67,12 +65,12 @@ VOLUME ["${ACTIVEMQ_DATA}"]
 VOLUME ["/var/log/activemq"]
 VOLUME ["${ACTIVEMQ_CONF}"]
 
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 WORKDIR ${ACTIVEMQ_HOME}
 
 USER ${USERNAME}
-
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["activemq", "console"]
