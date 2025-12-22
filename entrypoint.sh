@@ -41,15 +41,54 @@ if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
 fi
 
 # ------------------------------------------------
-# 3. Set broker name via JVM property (5.x + 6.x)
+# 3. ActiveMQ 5.x – configure admin at runtime
+# ------------------------------------------------
+
+# ActiveMQ 5.x detection (jetty-realm.properties exists only in 5.x)
+if [ -f "${ACTIVEMQ_HOME}/conf/jetty-realm.properties" ]; then
+  echo "ActiveMQ 5.x detected – configuring admin at runtime"
+
+  # Case 1: login + password provided
+  if [ -n "${ACTIVEMQ_ADMIN_LOGIN}" ] && [ -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]; then
+    ADMIN_USER="${ACTIVEMQ_ADMIN_LOGIN}"
+    ADMIN_PASS="${ACTIVEMQ_ADMIN_PASSWORD}"
+
+  # Case 2: only password provided → default admin
+  elif [ -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]; then
+    ADMIN_USER="admin"
+    ADMIN_PASS="${ACTIVEMQ_ADMIN_PASSWORD}"
+
+  # Case 3: nothing provided → use default admin/admin
+  else
+    ADMIN_USER="admin"
+    ADMIN_PASS="admin"
+  fi
+
+  echo "Configuring admin user: ${ADMIN_USER}"
+
+  # ---- jetty-realm.properties ----
+  sed -i "/^${ADMIN_USER}:/d" "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
+  echo "${ADMIN_USER}: ${ADMIN_PASS}, admin" >> "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
+
+  # ---- credentials.properties (5.x only) ----
+  if [ -f "${ACTIVEMQ_HOME}/conf/credentials.properties" ]; then
+    sed -i "s/^activemq.username=.*/activemq.username=${ADMIN_USER}/" "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
+    sed -i "s/^activemq.password=.*/activemq.password=${ADMIN_PASS}/" "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
+  fi
+
+else
+  echo "ActiveMQ 6.x detected – skipping admin configuration"
+fi
+
+
+# ------------------------------------------------
+# 4. Set broker name via JVM property (5.x + 6.x)
 # ------------------------------------------------
 
 # Inject JVM system property (picked up by activemq.xml)
 export ACTIVEMQ_OPTS="$ACTIVEMQ_OPTS -Dactivemq.brokername=${ACTIVEMQ_BROKER_NAME:-$HOSTNAME}"
 
-
-
 # ------------------------------------------------
-# 4. Exec command (PID 1)
+# 5. Exec command (PID 1)
 # ------------------------------------------------
 exec "${ACTIVEMQ_HOME}/bin/$@"

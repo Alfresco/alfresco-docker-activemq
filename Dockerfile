@@ -67,12 +67,20 @@ RUN if ! grep -q "jaasAuthenticationPlugin" "${ACTIVEMQ_HOME}/conf/activemq.xml"
     fi
 
 # ------------------------------------------------
-# Harden Jetty realm defaults (ActiveMQ 5.x only)
+# Harden default users (ActiveMQ 5.x only, build-time)
 # ------------------------------------------------
 RUN if [ -f "${ACTIVEMQ_HOME}/conf/jetty-realm.properties" ]; then \
-      echo "Hardening Jetty realm (build-time)"; \
+      echo "ActiveMQ 5.x detected – hardening defaults (build-time)"; \
+      \
+      # Remove default Jetty users
       sed -i '/^\(user\|admin\|guest\):/d' "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"; \
-      sed -i '/^guest/d' "${ACTIVEMQ_HOME}/conf/credentials.properties" || true; \
+      \
+      # Remove guest from broker credentials (5.x only)
+      if [ -f "${ACTIVEMQ_HOME}/conf/credentials.properties" ]; then \
+        sed -i '/^guest/d' "${ACTIVEMQ_HOME}/conf/credentials.properties"; \
+      fi; \
+    else \
+      echo "ActiveMQ 6.x detected – skipping Jetty hardening"; \
     fi
 
 # ------------------------------------------------
