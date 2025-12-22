@@ -48,18 +48,27 @@ fi
 if [ -f "${ACTIVEMQ_HOME}/conf/jetty-realm.properties" ]; then
   echo "ActiveMQ 5.x detected – configuring admin at runtime"
 
-  # Case 1: login + password provided
   if [ -n "${ACTIVEMQ_ADMIN_LOGIN}" ] && [ -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]; then
     ADMIN_USER="${ACTIVEMQ_ADMIN_LOGIN}"
     ADMIN_PASS="${ACTIVEMQ_ADMIN_PASSWORD}"
 
-  # Case 2: only password provided → default admin
+    # ---- credentials.properties (5.x only) ----
+    if [ -f "${ACTIVEMQ_HOME}/conf/credentials.properties" ]; then
+      sed -i "s/^activemq.username=.*/activemq.username=${ADMIN_USER}/" "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
+      sed -i "s/^activemq.password=.*/activemq.password=${ADMIN_PASS}/" "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
+    fi
+
   elif [ -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]; then
     ADMIN_USER="admin"
     ADMIN_PASS="${ACTIVEMQ_ADMIN_PASSWORD}"
 
-  # Case 3: nothing provided → use default admin/admin
+    if [ -f "${ACTIVEMQ_HOME}/conf/credentials.properties" ]; then
+      sed -i "s/^activemq.username=.*/activemq.username=${ADMIN_USER}/" "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
+      sed -i "s/^activemq.password=.*/activemq.password=${ADMIN_PASS}/" "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
+    fi
+
   else
+    # Case: no env → default Jetty admin only, leave credentials.properties as-is
     ADMIN_USER="admin"
     ADMIN_PASS="admin"
   fi
@@ -70,15 +79,10 @@ if [ -f "${ACTIVEMQ_HOME}/conf/jetty-realm.properties" ]; then
   sed -i "/^${ADMIN_USER}:/d" "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
   echo "${ADMIN_USER}: ${ADMIN_PASS}, admin" >> "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
 
-  # ---- credentials.properties (5.x only) ----
-  if [ -f "${ACTIVEMQ_HOME}/conf/credentials.properties" ]; then
-    sed -i "s/^activemq.username=.*/activemq.username=${ADMIN_USER}/" "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
-    sed -i "s/^activemq.password=.*/activemq.password=${ADMIN_PASS}/" "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
-  fi
-
 else
   echo "ActiveMQ 6.x detected – skipping admin configuration"
 fi
+
 
 
 # ------------------------------------------------
