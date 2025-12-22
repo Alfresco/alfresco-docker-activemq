@@ -35,6 +35,9 @@ ENV DOWNLOAD_KEYS_URL="https://downloads.apache.org/activemq/KEYS"
 
 ENV LC_ALL=C
 
+# ------------------------------------------------
+# Install ActiveMQ
+# ------------------------------------------------
 RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
     curl ${DOWNLOAD_URL} -sSfo /tmp/activemq.tar.gz && \
     curl ${DOWNLOAD_ASC_URL} -sSfo /tmp/activemq.tar.gz.asc && \
@@ -45,6 +48,31 @@ RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
     mv /tmp/apache-activemq-${ACTIVEMQ_VERSION}/* ${ACTIVEMQ_HOME} && \
     rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS
 
+# ------------------------------------------------
+# Enable JAAS plugin (ActiveMQ 5.x only)
+# ------------------------------------------------
+RUN if ! grep -q "jaasAuthenticationPlugin" "${ACTIVEMQ_HOME}/conf/activemq.xml"; then \
+      if grep -q "<plugins>" "${ACTIVEMQ_HOME}/conf/activemq.xml"; then \
+        sed -i '/<plugins>/a\    <jaasAuthenticationPlugin configuration="activemq"/>' \
+          "${ACTIVEMQ_HOME}/conf/activemq.xml"; \
+      else \
+        sed -i '/<\/broker>/i\  <plugins>\n    <jaasAuthenticationPlugin configuration="activemq"/>\n  </plugins>' \
+          "${ACTIVEMQ_HOME}/conf/activemq.xml"; \
+      fi; \
+    fi
+
+# ------------------------------------------------
+# Harden Jetty realm defaults (ActiveMQ 5.x only)
+# ------------------------------------------------
+RUN if [ -f "${ACTIVEMQ_HOME}/conf/jetty-realm.properties" ]; then \
+      echo "Hardening Jetty realm (build-time)"; \
+      sed -i 's/^user:.*//g' "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"; \
+      sed -i '/^guest/d' "${ACTIVEMQ_HOME}/conf/credentials.properties" || true; \
+    fi
+
+# ------------------------------------------------
+# Create runtime user
+# ------------------------------------------------
 RUN groupadd -g ${GROUPID} ${GROUPNAME} && \
     useradd -u ${USERID} -G ${GROUPNAME} ${USERNAME} && \
     chgrp -R ${GROUPNAME} ${ACTIVEMQ_HOME} && \
@@ -65,8 +93,7 @@ VOLUME ["${ACTIVEMQ_DATA}"]
 VOLUME ["/var/log/activemq"]
 VOLUME ["${ACTIVEMQ_CONF}"]
 
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 
 WORKDIR ${ACTIVEMQ_HOME}
 
