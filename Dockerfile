@@ -49,6 +49,11 @@ RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
     rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS
 
 # ------------------------------------------------
+# Make brokerName dynamic in XML
+# ------------------------------------------------
+RUN sed -i 's/brokerName="localhost"/brokerName="${activemq.brokername}"/' ${ACTIVEMQ_HOME}/conf/activemq.xml
+
+# ------------------------------------------------
 # Enable JAAS plugin (ActiveMQ 5.x only)
 # ------------------------------------------------
 RUN if ! grep -q "jaasAuthenticationPlugin" "${ACTIVEMQ_HOME}/conf/activemq.xml"; then \
@@ -66,7 +71,7 @@ RUN if ! grep -q "jaasAuthenticationPlugin" "${ACTIVEMQ_HOME}/conf/activemq.xml"
 # ------------------------------------------------
 RUN if [ -f "${ACTIVEMQ_HOME}/conf/jetty-realm.properties" ]; then \
       echo "Hardening Jetty realm (build-time)"; \
-      sed -i 's/^user:.*//g' "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"; \
+      sed -i '/^\(user\|admin\|guest\):/d' "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"; \
       sed -i '/^guest/d' "${ACTIVEMQ_HOME}/conf/credentials.properties" || true; \
     fi
 
