@@ -24,6 +24,21 @@ elif [[ -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
 fi
 
 # ------------------------------------------------
+# 2b. Grant admin role (groups.properties) – REQUIRED for 6.x
+# ------------------------------------------------
+if [[ -f "${ACTIVEMQ_HOME}/conf/groups.properties" ]]; then
+  if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" ]]; then
+    ADMIN_USER="${ACTIVEMQ_ADMIN_LOGIN}"
+  else
+    ADMIN_USER="admin"
+  fi
+
+  sed -i "s/^admins=.*/admins=${ADMIN_USER}/" \
+    "${ACTIVEMQ_HOME}/conf/groups.properties"
+fi
+
+
+# ------------------------------------------------
 # 3. ActiveMQ 5.x – configure jetty-realm.properties
 # ------------------------------------------------
 
