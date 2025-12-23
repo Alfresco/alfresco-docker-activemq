@@ -19,7 +19,7 @@ Activemq version | Java version | OS           | Image tag                | Size
 5.17             | 17           | Rockylinux 8 | `5.17-jre17-rockylinux8` | ![5.17 size][2]
 5.18             | 17           | Rockylinux 8 | `5.18-jre17-rockylinux8` | ![5.18 size][3]
 5.19             | 17           | Rockylinux 8 | `5.19-jre17-rockylinux8` | ![5.19 size][4]
-5.20             | 17           | Rockylinux 8 | `6.2-jre17-rockylinux8` | ![6.2 size][5]
+6.2              | 17           | Rockylinux 8 | `6.2-jre17-rockylinux8`  | ![6.2 size][5]
 
 
 [1]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.16-jre17-rockylinux8

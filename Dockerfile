@@ -53,7 +53,7 @@ RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
 # ------------------------------------------------
 # Make brokerName dynamic in XML
 # ------------------------------------------------
-RUN sed -i 's/brokerName="localhost"/brokerName="${activemq.brokername}"/' ${ACTIVEMQ_HOME}/conf/activemq.xml
+RUN sed -i 's|brokerName="localhost"|brokerName="${activemq.brokername}"|' ${ACTIVEMQ_HOME}/conf/activemq.xml
 
 # ------------------------------------------------
 # Enable JAAS plugin (ActiveMQ 5.x only)
