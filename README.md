@@ -1,7 +1,6 @@
 # Alfresco ActiveMQ docker image
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/Alfresco/alfresco-docker-activemq/build.yml?branch=master)](https://github.com/Alfresco/alfresco-docker-activemq/actions/workflows/build.yml)
-![5.18-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/latest)
 ![5.17-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/5.17-jre17-rockylinux8)
 ![5.16-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/5.16-jre17-rockylinux8)
 
@@ -19,6 +18,9 @@ Activemq version | Java version | OS           | Image tag                | Size
 5.16             | 17           | Rockylinux 8 | `5.16-jre17-rockylinux8` | ![5.16 size][1]
 5.17             | 17           | Rockylinux 8 | `5.17-jre17-rockylinux8` | ![5.17 size][2]
 5.18             | 17           | Rockylinux 8 | `5.18-jre17-rockylinux8` | ![5.18 size][3]
+5.19             | 17           | Rockylinux 8 | `5.19-jre17-rockylinux8` | ![5.19 size][4]
+5.20             | 17           | Rockylinux 8 | `6.2-jre17-rockylinux8` | ![6.2 size][5]
+
 
 [1]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.16-jre17-rockylinux8
 [2]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.17-jre17-rockylinux8
@@ -27,7 +29,6 @@ Activemq version | Java version | OS           | Image tag                | Size
 Additional tags available:
 
 * `5.18.NN-jre17-rockylinux8` (full semver)
-* `latest` which always point to the latest activemq version available
 
 Built images are available on the following registries:
 
