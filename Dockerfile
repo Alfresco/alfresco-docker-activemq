@@ -29,18 +29,7 @@ ENV ACTIVEMQ_BASE="/opt/activemq"
 ENV ACTIVEMQ_CONF="/opt/activemq/conf"
 ENV ACTIVEMQ_DATA="/opt/activemq/data"
 ENV ACTIVEMQ_BROKER_NAME="localhost"
-# Set ActiveMQ home
-ENV ACTIVEMQ_HOME=/opt/activemq
 
-# Check file content before sed
-RUN echo "=== BEFORE sed ===" && cat ${ACTIVEMQ_HOME}/conf/activemq.xml
-
-# Replace hardcoded brokerName with placeholder
-RUN sed -i 's/brokerName="localhost"/brokerName="${activemq.brokername}"/' \
-    ${ACTIVEMQ_HOME}/conf/activemq.xml
-
-# Check file content after sed
-RUN echo "=== AFTER sed ===" && cat ${ACTIVEMQ_HOME}/conf/activemq.xml
 
 ENV DOWNLOAD_URL="https://archive.apache.org/dist/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
 ENV DOWNLOAD_ASC_URL="${DOWNLOAD_URL}.asc"
