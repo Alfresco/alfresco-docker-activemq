@@ -11,16 +11,9 @@ fi
 # 2. Configure admin user via JAAS (non-destructive)
 # ------------------------------------------------
 if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
-
-  USERS_FILE="${ACTIVEMQ_HOME}/conf/users.properties"
-
-  touch "${USERS_FILE}"
-
-  # Remove default admin and existing user entry
-  sed -i '/^admin=/d' "${USERS_FILE}"
-  sed -i "/^${ACTIVEMQ_ADMIN_LOGIN}=.*/d" "${USERS_FILE}"
-  echo "${ACTIVEMQ_ADMIN_LOGIN}=${ACTIVEMQ_ADMIN_PASSWORD}" >> "${USERS_FILE}"
-
+  sed -i '/^admin=/d' "${ACTIVEMQ_HOME}/conf/users.properties"
+  sed -i "/^${ACTIVEMQ_ADMIN_LOGIN}=.*/d" "${ACTIVEMQ_HOME}/conf/users.properties"
+  echo "${ACTIVEMQ_ADMIN_LOGIN}=${ACTIVEMQ_ADMIN_PASSWORD}" >> "${ACTIVEMQ_HOME}/conf/users.properties"
 fi
 
 # ------------------------------------------------
@@ -30,42 +23,31 @@ fi
 # ActiveMQ 5.x detection (jetty-realm.properties exists only in 5.x)
 if [ -f "${ACTIVEMQ_HOME}/conf/jetty-realm.properties" ]; then
   echo "ActiveMQ 5.x detected – configuring admin at runtime"
-
+  # Case 1: ADMIN_LOGIN + ADMIN_PASSWORD
   if [ -n "${ACTIVEMQ_ADMIN_LOGIN}" ] && [ -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]; then
-    ADMIN_USER="${ACTIVEMQ_ADMIN_LOGIN}"
-    ADMIN_PASS="${ACTIVEMQ_ADMIN_PASSWORD}"
+    sed -i \
+      -e '/^admin:/d' \
+      -e "/^${ACTIVEMQ_ADMIN_LOGIN}:/d" \
+      -e "\$a${ACTIVEMQ_ADMIN_LOGIN}: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" \
+      "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
 
-    # ---- credentials.properties (5.x only) ----
-    if [ -f "${ACTIVEMQ_HOME}/conf/credentials.properties" ]; then
-      sed -i "s/^activemq.username=.*/activemq.username=${ADMIN_USER}/" "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
-      sed -i "s/^activemq.password=.*/activemq.password=${ADMIN_PASS}/" "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
-    fi
-
+  # Case 2: ADMIN_PASSWORD only (match old script)
   elif [ -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]; then
-    ADMIN_USER="admin"
-    ADMIN_PASS="${ACTIVEMQ_ADMIN_PASSWORD}"
-
-    if [ -f "${ACTIVEMQ_HOME}/conf/credentials.properties" ]; then
-      sed -i "s/^activemq.username=.*/activemq.username=${ADMIN_USER}/" "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
-      sed -i "s/^activemq.password=.*/activemq.password=${ADMIN_PASS}/" "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
-    fi
-
-  else
-    # Case: no env → default Jetty admin only, leave credentials.properties as-is
-    ADMIN_USER="admin"
-    ADMIN_PASS="admin"
+    sed -i \
+      -e '/^admin:/d' \
+      -e "\$aadmin: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" \
+      "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
   fi
-
-  echo "Configuring admin user: ${ADMIN_USER}"
-
-  # ---- jetty-realm.properties ----
-  sed -i "/^${ADMIN_USER}:/d" "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
-  echo "${ADMIN_USER}: ${ADMIN_PASS}, admin" >> "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
-
-else
-  echo "ActiveMQ 6.x detected – skipping admin configuration"
 fi
 
+if [ -n "${ACTIVEMQ_ADMIN_LOGIN}" ] && [ -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]; then
+  if [ -f "${ACTIVEMQ_HOME}/conf/credentials.properties" ]; then
+    sed -i \
+      -e "s/^activemq.username=.*/activemq.username=${ACTIVEMQ_ADMIN_LOGIN}/" \
+      -e "s/^activemq.password=.*/activemq.password=${ACTIVEMQ_ADMIN_PASSWORD}/" \
+      "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
+  fi
+fi
 
 
 # ------------------------------------------------
@@ -74,6 +56,7 @@ fi
 
 # Inject JVM system property (picked up by activemq.xml)
 export ACTIVEMQ_OPTS="$ACTIVEMQ_OPTS -Dactivemq.brokername=${ACTIVEMQ_BROKER_NAME:-$HOSTNAME}"
+
 
 # ------------------------------------------------
 # 5. Exec command (PID 1)

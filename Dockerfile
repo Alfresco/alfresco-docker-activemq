@@ -28,6 +28,19 @@ ENV ACTIVEMQ_HOME="/opt/activemq"
 ENV ACTIVEMQ_BASE="/opt/activemq"
 ENV ACTIVEMQ_CONF="/opt/activemq/conf"
 ENV ACTIVEMQ_DATA="/opt/activemq/data"
+ENV ACTIVEMQ_BROKER_NAME="localhost"
+# Set ActiveMQ home
+ENV ACTIVEMQ_HOME=/opt/activemq
+
+# Check file content before sed
+RUN echo "=== BEFORE sed ===" && cat ${ACTIVEMQ_HOME}/conf/activemq.xml
+
+# Replace hardcoded brokerName with placeholder
+RUN sed -i 's/brokerName="localhost"/brokerName="${activemq.brokername}"/' \
+    ${ACTIVEMQ_HOME}/conf/activemq.xml
+
+# Check file content after sed
+RUN echo "=== AFTER sed ===" && cat ${ACTIVEMQ_HOME}/conf/activemq.xml
 
 ENV DOWNLOAD_URL="https://archive.apache.org/dist/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
 ENV DOWNLOAD_ASC_URL="${DOWNLOAD_URL}.asc"
@@ -64,23 +77,6 @@ RUN if ! grep -q "jaasAuthenticationPlugin" "${ACTIVEMQ_HOME}/conf/activemq.xml"
         sed -i '/<\/broker>/i\  <plugins>\n    <jaasAuthenticationPlugin configuration="activemq"/>\n  </plugins>' \
           "${ACTIVEMQ_HOME}/conf/activemq.xml"; \
       fi; \
-    fi
-
-# ------------------------------------------------
-# Harden default users (ActiveMQ 5.x only, build-time)
-# ------------------------------------------------
-RUN if [ -f "${ACTIVEMQ_HOME}/conf/jetty-realm.properties" ]; then \
-      echo "ActiveMQ 5.x detected – hardening defaults (build-time)"; \
-      \
-      # Remove default Jetty users
-      sed -i '/^\(user\|admin\|guest\):/d' "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"; \
-      \
-      # Remove guest from broker credentials (5.x only)
-      if [ -f "${ACTIVEMQ_HOME}/conf/credentials.properties" ]; then \
-        sed -i '/^guest/d' "${ACTIVEMQ_HOME}/conf/credentials.properties"; \
-      fi; \
-    else \
-      echo "ActiveMQ 6.x detected – skipping Jetty hardening"; \
     fi
 
 # ------------------------------------------------
