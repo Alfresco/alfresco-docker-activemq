@@ -29,22 +29,26 @@ fi
 
 if [[ -f "${ACTIVEMQ_HOME}/conf/jetty-realm.properties" ]]; then
   echo "ActiveMQ 5.x detected – configuring admin at runtime"
+  # Remove the default user entry if present
   sed -i '/^user: user, user/d' "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
 
   if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
-    sed -i \
-      -e '/^admin:/d' \
-      -e "/^${ACTIVEMQ_ADMIN_LOGIN}:/d" \
-      -e "\$a${ACTIVEMQ_ADMIN_LOGIN}: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" \
-      "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
+    # Remove any existing admin or duplicate login entries
+    sed -i "/^admin:/d" "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
+    sed -i "/^${ACTIVEMQ_ADMIN_LOGIN}:/d" "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
+
+    # Append new admin entry
+    echo "${ACTIVEMQ_ADMIN_LOGIN}: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" >> "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
 
   elif [[ -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
-    sed -i \
-      -e '/^admin:/d' \
-      -e "\$aadmin: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" \
-      "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
+    # Remove any existing admin entry
+    sed -i "/^admin:/d" "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
+
+    # Append admin with new password
+    echo "admin: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" >> "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
   fi
 fi
+
 
 # ------------------------------------------------
 # 4. Update credentials.properties
