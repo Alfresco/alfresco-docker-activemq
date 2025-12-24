@@ -50,34 +50,34 @@ RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
     mv /tmp/apache-activemq-${ACTIVEMQ_VERSION}/* ${ACTIVEMQ_HOME} && \
     rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS
 
-# ------------------------------------------------
-# Install xmlstarlet
-# ------------------------------------------------
-RUN dnf install -y xmlstarlet && \
-    dnf clean all
+# # ------------------------------------------------
+# # Install xmlstarlet
+# # ------------------------------------------------
+# RUN dnf install -y xmlstarlet && \
+#     dnf clean all
 
-# ------------------------------------------------
-# Make brokerName dynamic in XML
-# ------------------------------------------------
-RUN xmlstarlet ed -L -u "/broker/@brokerName" -v '${activemq.brokername}' ${ACTIVEMQ_HOME}/conf/activemq.xml
+# # ------------------------------------------------
+# # Make brokerName dynamic in XML
+# # ------------------------------------------------
+# RUN xmlstarlet ed -L -u "/broker/@brokerName" -v '${activemq.brokername}' ${ACTIVEMQ_HOME}/conf/activemq.xml
 
-# ------------------------------------------------
-# Enable JAAS plugin (ActiveMQ 5.x only)
-# ------------------------------------------------
+# # ------------------------------------------------
+# # Enable JAAS plugin (ActiveMQ 5.x only)
+# # ------------------------------------------------
 
-RUN xmlstarlet ed -L \
-  -N x="http://activemq.apache.org/schema/core" \
-  \
-  -i "/x:broker[not(x:plugins)]" \
-  -t elem -n plugins -v "" \
-  \
-  -i "/x:broker/x:plugins[not(x:jaasAuthenticationPlugin)]" \
-  -t elem -n jaasAuthenticationPlugin -v "" \
-  \
-  -i "/x:broker/x:plugins/x:jaasAuthenticationPlugin[not(@configuration)]" \
-  -t attr -n configuration -v "activemq" \
-  \
-  ${ACTIVEMQ_HOME}/conf/activemq.xml
+# RUN xmlstarlet ed -L \
+#   -N x="http://activemq.apache.org/schema/core" \
+#   \
+#   -i "/x:broker[not(x:plugins)]" \
+#   -t elem -n plugins -v "" \
+#   \
+#   -i "/x:broker/x:plugins[not(x:jaasAuthenticationPlugin)]" \
+#   -t elem -n jaasAuthenticationPlugin -v "" \
+#   \
+#   -i "/x:broker/x:plugins/x:jaasAuthenticationPlugin[not(@configuration)]" \
+#   -t attr -n configuration -v "activemq" \
+#   \
+#   ${ACTIVEMQ_HOME}/conf/activemq.xml
 # ------------------------------------------------
 # Create runtime user
 # ------------------------------------------------
