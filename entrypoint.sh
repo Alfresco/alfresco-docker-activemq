@@ -7,60 +7,53 @@ set -e
 if [[ -f "${ACTIVEMQ_HOME}/conf/jetty.xml" ]]; then
   sed -i 's/127.0.0.1/0.0.0.0/g' "${ACTIVEMQ_HOME}/conf/jetty.xml"
 fi
-
+xmlstarlet ed -L \
+  -u "//Set[@name='host']" \
+  -v "0.0.0.0" \
+  "${ACTIVEMQ_HOME}/conf/jetty.xml"
 # ------------------------------------------------
-# 2. Configure admin user via JAAS (non-destructive)
+# 2. Configure admin user via JAAS (users.properties)
 # ------------------------------------------------
-# Case 1: Both ADMIN_LOGIN and ADMIN_PASSWORD → custom admin
-if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
-  sed -i '/^admin=/d' "${ACTIVEMQ_HOME}/conf/users.properties"
-  sed -i "/^${ACTIVEMQ_ADMIN_LOGIN}=.*/d" "${ACTIVEMQ_HOME}/conf/users.properties"
-  echo "${ACTIVEMQ_ADMIN_LOGIN}=${ACTIVEMQ_ADMIN_PASSWORD}" >> "${ACTIVEMQ_HOME}/conf/users.properties"
-
-# Case 2: Only ADMIN_PASSWORD → default admin
-elif [[ -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
-  sed -i '/^admin=/d' "${ACTIVEMQ_HOME}/conf/users.properties"
-  echo "admin=${ACTIVEMQ_ADMIN_PASSWORD}" >> "${ACTIVEMQ_HOME}/conf/users.properties"
-fi
-
-# ------------------------------------------------
-# 2b. Grant admin role (groups.properties) – REQUIRED for 6.x
-# ------------------------------------------------
-if [[ -f "${ACTIVEMQ_HOME}/conf/groups.properties" ]]; then
+if [[ -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
   if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" ]]; then
     ADMIN_USER="${ACTIVEMQ_ADMIN_LOGIN}"
   else
     ADMIN_USER="admin"
   fi
 
-  sed -i "s/^admins=.*/admins=${ADMIN_USER}/" \
-    "${ACTIVEMQ_HOME}/conf/groups.properties"
+  echo "Configuring JAAS users.properties (overwrite mode)"
+  echo "${ADMIN_USER}=${ACTIVEMQ_ADMIN_PASSWORD}" \
+    > "${CONF_DIR}/users.properties"
+fi
+
+# ------------------------------------------------
+# 2b. Grant admin role (groups.properties) – REQUIRED for 6.x
+# ------------------------------------------------
+if [[ -f "${CONF_DIR}/groups.properties" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
+  if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" ]]; then
+    ADMIN_USER="${ACTIVEMQ_ADMIN_LOGIN}"
+  else
+    ADMIN_USER="admin"
+  fi
+
+  echo "Configuring groups.properties (overwrite mode)"
+  echo "admins=${ADMIN_USER}" \
+    > "${CONF_DIR}/groups.properties"
 fi
 
 
 # ------------------------------------------------
 # 3. ActiveMQ 5.x – configure jetty-realm.properties
 # ------------------------------------------------
+if [[ -f "${CONF_DIR}/jetty-realm.properties" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
+  echo "ActiveMQ 5.x detected – configuring jetty-realm.properties (overwrite mode)"
 
-if [[ -f "${ACTIVEMQ_HOME}/conf/jetty-realm.properties" ]]; then
-  echo "ActiveMQ 5.x detected – configuring admin at runtime"
-  # Remove the default user entry if present
-  sed -i '/^user: user, user/d' "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
-
-  if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
-    # Remove any existing admin or duplicate login entries
-    sed -i "/^admin:/d" "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
-    sed -i "/^${ACTIVEMQ_ADMIN_LOGIN}:/d" "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
-
-    # Append new admin entry
-    echo "${ACTIVEMQ_ADMIN_LOGIN}: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" >> "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
-
-  elif [[ -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
-    # Remove any existing admin entry
-    sed -i "/^admin:/d" "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
-
-    # Append admin with new password
-    echo "admin: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" >> "${ACTIVEMQ_HOME}/conf/jetty-realm.properties"
+  if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" ]]; then
+    echo "${ACTIVEMQ_ADMIN_LOGIN}: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" \
+      > "${CONF_DIR}/jetty-realm.properties"
+  else
+    echo "admin: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" \
+      > "${CONF_DIR}/jetty-realm.properties"
   fi
 fi
 
@@ -68,17 +61,18 @@ fi
 # ------------------------------------------------
 # 4. Update credentials.properties
 # ------------------------------------------------
-if [[ -n "${ACTIVEMQ_ADMIN_PASSWORD}" && -f "${ACTIVEMQ_HOME}/conf/credentials.properties" ]]; then
+if [[ -f "${CONF_DIR}/credentials.properties" && -n "${ACTIVEMQ_ADMIN_PASSWORD}" ]]; then
   if [[ -n "${ACTIVEMQ_ADMIN_LOGIN}" ]]; then
     USERNAME="${ACTIVEMQ_ADMIN_LOGIN}"
   else
     USERNAME="admin"
   fi
 
-  sed -i \
-    -e "s/^activemq.username=.*/activemq.username=${USERNAME}/" \
-    -e "s/^activemq.password=.*/activemq.password=${ACTIVEMQ_ADMIN_PASSWORD}/" \
-    "${ACTIVEMQ_HOME}/conf/credentials.properties" || true
+  echo "Configuring credentials.properties (overwrite mode)"
+  cat > "${CONF_DIR}/credentials.properties" <<EOF
+activemq.username=${USERNAME}
+activemq.password=${ACTIVEMQ_ADMIN_PASSWORD}
+EOF
 fi
 
 # ------------------------------------------------
