@@ -51,6 +51,12 @@ RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
     rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS
 
 # ------------------------------------------------
+# Install xmlstarlet
+# ------------------------------------------------
+RUN dnf install -y xmlstarlet && \
+    dnf clean all
+
+# ------------------------------------------------
 # Make brokerName dynamic in XML
 # ------------------------------------------------
 RUN xmlstarlet ed -L -u "/broker/@brokerName" -v '${activemq.brokername}' ${ACTIVEMQ_HOME}/conf/activemq.xml
