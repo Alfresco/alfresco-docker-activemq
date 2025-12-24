@@ -7,10 +7,7 @@ set -e
 if [[ -f "${ACTIVEMQ_HOME}/conf/jetty.xml" ]]; then
   sed -i 's/127.0.0.1/0.0.0.0/g' "${ACTIVEMQ_HOME}/conf/jetty.xml"
 fi
-xmlstarlet ed -L \
-  -u "//Set[@name='host']" \
-  -v "0.0.0.0" \
-  "${ACTIVEMQ_HOME}/conf/jetty.xml"
+
 # ------------------------------------------------
 # 2. Configure admin user via JAAS (users.properties)
 # ------------------------------------------------
