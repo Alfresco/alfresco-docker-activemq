@@ -64,7 +64,8 @@ RUN dnf install -y xmlstarlet && \
 # ------------------------------------------------
 # Make brokerName dynamic in XML
 # ------------------------------------------------
-RUN xmlstarlet ed -L -u "/broker/@brokerName" -v '${activemq.brokername}' ${ACTIVEMQ_HOME}/conf/activemq.xml
+
+RUN xmlstarlet ed -L -N x="http://activemq.apache.org/schema/core" -u "/x:broker/@brokerName" -v '${ACTIVEMQ_BROKER_NAME}' ${ACTIVEMQ_HOME}/conf/activemq.xml
 
 # ------------------------------------------------
 # Enable JAAS plugin (ActiveMQ 5.x only)
@@ -72,17 +73,14 @@ RUN xmlstarlet ed -L -u "/broker/@brokerName" -v '${activemq.brokername}' ${ACTI
 
 RUN xmlstarlet ed -L \
   -N x="http://activemq.apache.org/schema/core" \
-  \
-  -i "/x:broker[not(x:plugins)]" \
-  -t elem -n plugins -v "" \
-  \
-  -i "/x:broker/x:plugins[not(x:jaasAuthenticationPlugin)]" \
-  -t elem -n jaasAuthenticationPlugin -v "" \
-  \
-  -i "/x:broker/x:plugins/x:jaasAuthenticationPlugin[not(@configuration)]" \
-  -t attr -n configuration -v "activemq" \
-  \
-  ${ACTIVEMQ_HOME}/conf/activemq.xml
+  # Add <plugins> under <broker> if missing
+  -s "/x:broker" -t elem -n plugins -v "" \
+  # Add JAAS plugin under <plugins> if missing
+  -s "/x:broker/x:plugins" -t elem -n jaasAuthenticationPlugin -v "" \
+  # Set configuration="activemq" if missing
+  -i "/x:broker/x:plugins/x:jaasAuthenticationPlugin[not(@configuration)]" -t attr -n configuration -v "activemq" \
+  ${ACTIVEMQ_HOME}/conf/activemq.xml || true
+
 # ------------------------------------------------
 # Create runtime user
 # ------------------------------------------------
