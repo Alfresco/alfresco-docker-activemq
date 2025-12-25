@@ -64,22 +64,26 @@ RUN dnf install -y xmlstarlet && \
 # ------------------------------------------------
 # Make brokerName dynamic in XML
 # ------------------------------------------------
-
-RUN xmlstarlet ed -L -N x="http://activemq.apache.org/schema/core" -u "/x:broker/@brokerName" -v '${ACTIVEMQ_BROKER_NAME}' ${ACTIVEMQ_HOME}/conf/activemq.xml
+RUN xmlstarlet ed -L \
+    -N b="http://www.springframework.org/schema/beans" \
+    -N x="http://activemq.apache.org/schema/core" \
+    -u "/b:beans/x:broker/@brokerName" \
+    -v "${ACTIVEMQ_BROKER_NAME}" \
+    ${ACTIVEMQ_HOME}/conf/activemq.xml
 
 # ------------------------------------------------
 # Enable JAAS plugin (ActiveMQ 5.x only)
 # ------------------------------------------------
-
 RUN xmlstarlet ed -L \
-  -N x="http://activemq.apache.org/schema/core" \
-  # Add <plugins> under <broker> if missing
-  -s "/x:broker" -t elem -n plugins -v "" \
-  # Add JAAS plugin under <plugins> if missing
-  -s "/x:broker/x:plugins" -t elem -n jaasAuthenticationPlugin -v "" \
-  # Set configuration="activemq" if missing
-  -i "/x:broker/x:plugins/x:jaasAuthenticationPlugin[not(@configuration)]" -t attr -n configuration -v "activemq" \
-  ${ACTIVEMQ_HOME}/conf/activemq.xml || true
+    -N b="http://www.springframework.org/schema/beans" \
+    -N x="http://activemq.apache.org/schema/core" \
+    -s "/b:beans/x:broker[not(x:plugins)]" \
+       -t elem -n plugins -v "" \
+    -s "/b:beans/x:broker/plugins[not(jaasAuthenticationPlugin)]" \
+       -t elem -n jaasAuthenticationPlugin -v "" \
+    -i "/b:beans/x:broker/plugins/jaasAuthenticationPlugin[not(@configuration)]" \
+       -t attr -n configuration -v "activemq" \
+    ${ACTIVEMQ_HOME}/conf/activemq.xml
 
 # ------------------------------------------------
 # Create runtime user
