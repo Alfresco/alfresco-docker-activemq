@@ -41,14 +41,19 @@ ENV LC_ALL=C
 # Install ActiveMQ
 # ------------------------------------------------
 RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
-    curl ${DOWNLOAD_URL} -sSfo /tmp/activemq.tar.gz && \
-    curl ${DOWNLOAD_ASC_URL} -sSfo /tmp/activemq.tar.gz.asc && \
-    curl ${DOWNLOAD_KEYS_URL} -sSfo /tmp/KEYS && \
+    curl ${DOWNLOAD_URL} -sSfo /tmp/activemq.tar.gz \
+         --fail --location --retry 3 && \
+    curl ${DOWNLOAD_ASC_URL} -sSfo /tmp/activemq.tar.gz.asc \
+         --fail --location --retry 3 && \
+    curl ${DOWNLOAD_KEYS_URL} -sSfo /tmp/KEYS \
+         --fail --location --retry 3 && \
     gpg --import /tmp/KEYS && \
     gpg --verify /tmp/activemq.tar.gz.asc /tmp/activemq.tar.gz && \
     tar -xzf /tmp/activemq.tar.gz -C /tmp && \
     mv /tmp/apache-activemq-${ACTIVEMQ_VERSION}/* ${ACTIVEMQ_HOME} && \
     rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS
+
+
 
 # ------------------------------------------------
 # Install xmlstarlet
