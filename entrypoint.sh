@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -e
 
-# ------------------------------------------------
-# 1. Allow remote access to web console (Jetty)
-# ------------------------------------------------
-if [[ -f "${ACTIVEMQ_HOME}/conf/jetty.xml" ]]; then
-  xmlstarlet ed -L \
-    -u "//Set[@name='host']" \
-    -v "0.0.0.0" \
-    "${ACTIVEMQ_HOME}/conf/jetty.xml"
-fi
+# # ------------------------------------------------
+# # 1. Allow remote access to web console (Jetty)
+# # ------------------------------------------------
+# if [[ -f "${ACTIVEMQ_HOME}/conf/jetty.xml" ]]; then
+#   xmlstarlet ed -L \
+#     -u "//Set[@name='host']" \
+#     -v "0.0.0.0" \
+#     "${ACTIVEMQ_HOME}/conf/jetty.xml"
+# fi
 
 # ------------------------------------------------
 # 2. Configure admin user via JAAS (users.properties)

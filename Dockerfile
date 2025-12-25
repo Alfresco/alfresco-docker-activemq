@@ -62,6 +62,14 @@ RUN dnf install -y xmlstarlet && \
     dnf clean all
 
 # ------------------------------------------------
+# Set Jetty to bind on all interfaces (0.0.0.0)
+# ------------------------------------------------
+RUN xmlstarlet ed -L \
+    -u "//Set[@name='host']" \
+    -v "0.0.0.0" \
+    ${ACTIVEMQ_HOME}/conf/jetty.xml
+
+# ------------------------------------------------
 # Make brokerName dynamic in XML
 # ------------------------------------------------
 RUN xmlstarlet ed -L \
