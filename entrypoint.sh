@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 set -e
 
-# # ------------------------------------------------
-# # 1. Allow remote access to web console (Jetty)
-# # ------------------------------------------------
-# if [[ -f "${ACTIVEMQ_HOME}/conf/jetty.xml" ]]; then
-#   xmlstarlet ed -L \
-#     -u "//Set[@name='host']" \
-#     -v "0.0.0.0" \
-#     "${ACTIVEMQ_HOME}/conf/jetty.xml"
-# fi
+# ------------------------------------------------
+# Allow remote access to web console (Jetty)
+# ------------------------------------------------
+if [[ -f "${ACTIVEMQ_HOME}/conf/jetty.xml" ]]; then
+  echo "Configuring Jetty to bind on 0.0.0.0"
+  xmlstarlet ed -L \
+  -N b="http://www.springframework.org/schema/beans" \
+  -u "//b:bean[@id='jettyPort']/b:property[@name='host']/@value" \
+  -v "0.0.0.0" \
+  "${ACTIVEMQ_HOME}/conf/jetty.xml"
+fi
+
 
 # ------------------------------------------------
 # 2. Configure admin user via JAAS (users.properties)
