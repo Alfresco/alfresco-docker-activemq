@@ -105,5 +105,5 @@ jobs:
           labels: |
             ${{ steps.vars.outputs.labels }}
           provenance: false
-          target: ACTIVEMQ_IMAGE
+          target: activemq_image
           platforms: linux/amd64,linux/arm64/v8
