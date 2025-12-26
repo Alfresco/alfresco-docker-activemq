@@ -40,10 +40,25 @@ ENV LC_ALL=C
 # ------------------------------------------------
 # Install ActiveMQ
 # ------------------------------------------------
+ENV APACHE_MIRRORS="https://downloads.apache.org https://archive.apache.org"
+
+# ------------------------------------------------
+# Install ActiveMQ with mirror probing + GPG verify
+# ------------------------------------------------
 RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
-    curl -sSL --retry 5 --retry-delay 5 --retry-connrefused --fail -o /tmp/activemq.tar.gz ${DOWNLOAD_URL} && \
-    curl -sSL --retry 5 --retry-delay 5 --retry-connrefused --fail -o /tmp/activemq.tar.gz.asc ${DOWNLOAD_ASC_URL} && \
-    curl -sSL --retry 5 --retry-delay 5 --retry-connrefused --fail -o /tmp/KEYS ${DOWNLOAD_KEYS_URL} && \
+    active_mirror="" && \
+    for mirror in $APACHE_MIRRORS; do \
+        echo "Probing $mirror"; \
+        if curl -fsSL --connect-timeout 10 "$mirror/activemq/KEYS" -o /tmp/KEYS; then \
+            active_mirror="$mirror"; \
+            break; \
+        fi; \
+    done && \
+    [ -n "$active_mirror" ] || { echo "No mirror found"; exit 1; } && \
+    echo "Using mirror: $active_mirror" && \
+    base="$active_mirror/activemq/${ACTIVEMQ_VERSION}" && \
+    curl -fsSL --retry 5 --retry-delay 5 --retry-connrefused --fail -o /tmp/activemq.tar.gz "$base/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz" && \
+    curl -fsSL --retry 5 --retry-delay 5 --retry-connrefused --fail -o /tmp/activemq.tar.gz.asc "$base/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz.asc" && \
     gpg --import /tmp/KEYS && \
     gpg --verify /tmp/activemq.tar.gz.asc /tmp/activemq.tar.gz && \
     tar -xzf /tmp/activemq.tar.gz -C /tmp && \
