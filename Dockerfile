@@ -38,12 +38,13 @@ ENV DOWNLOAD_KEYS_URL="https://downloads.apache.org/activemq/KEYS"
 ENV LC_ALL=C
 
 # ------------------------------------------------
+# Install dependencies
+# ------------------------------------------------
+RUN dnf install -y xmlstarlet gnupg curl && \
+    dnf clean all
+    
+# ------------------------------------------------
 # Install ActiveMQ
-# ------------------------------------------------
-ENV APACHE_MIRRORS="https://archive.apache.org https://downloads.apache.org"
-
-# ------------------------------------------------
-# Install ActiveMQ with mirror probing + GPG verify
 # ------------------------------------------------
 RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
     curl -fsSLo /tmp/activemq.tar.gz ${DOWNLOAD_URL} && \
