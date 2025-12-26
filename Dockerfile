@@ -56,18 +56,20 @@ RUN dnf install -y ca-certificates gnupg curl xmlstarlet && \
             break; \
         fi; \
     done && \
-    [ -n "$active_mirror" ] && echo "Using mirror: $active_mirror" && \
+    [ -n "$active_mirror" ] || { echo "ERROR: No mirror found"; exit 1; } && \
+    echo "Using mirror: $active_mirror" && \
     base="$active_mirror/activemq/${ACTIVEMQ_VERSION}" && \
-    for filetype in ".tar.gz" ".tar.gz.asc"; do \
+    { for filetype in ".tar.gz" ".tar.gz.asc"; do \
         curl -fsSL --retry 10 --retry-all-errors --connect-timeout 15 \
             -o "/tmp/activemq$filetype" \
             "$base/apache-activemq-${ACTIVEMQ_VERSION}-bin$filetype"; \
-    done && \
+      done; } && \
     gpg --batch --import /tmp/KEYS && \
     gpg --batch --verify /tmp/activemq.tar.gz.asc /tmp/activemq.tar.gz && \
     tar -xzf /tmp/activemq.tar.gz -C /tmp && \
     mv "/tmp/apache-activemq-${ACTIVEMQ_VERSION}/"* "${ACTIVEMQ_HOME}" && \
     rm -rf /tmp/*
+
 
 # ------------------------------------------------
 # Install xmlstarlet
