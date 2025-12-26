@@ -40,33 +40,19 @@ ENV LC_ALL=C
 # ------------------------------------------------
 # Install ActiveMQ
 # ------------------------------------------------
-ENV APACHE_MIRRORS="https://downloads.apache.org https://archive.apache.org"
+ENV APACHE_MIRRORS="https://archive.apache.org https://downloads.apache.org"
 
 # ------------------------------------------------
 # Install ActiveMQ with mirror probing + GPG verify
 # ------------------------------------------------
-RUN dnf install -y ca-certificates gnupg curl xmlstarlet && \
-    dnf clean all && \
-    mkdir -p "${ACTIVEMQ_HOME}" /data /var/log/activemq && \
-    active_mirror="" && \
-    for mirror in https://downloads.apache.org https://archive.apache.org; do \
-        echo "Probing $mirror"; \
-        if curl -fsSL --connect-timeout 10 "$mirror/activemq/KEYS" -o /tmp/KEYS; then \
-            active_mirror="$mirror"; \
-            break; \
-        fi; \
-    done && \
-    [ -n "$active_mirror" ] || { echo "No mirror found"; exit 1; } && \
-    echo "Using mirror: $active_mirror" && \
-    base="$active_mirror/activemq/${ACTIVEMQ_VERSION}" && \
-    curl -fsSL --retry 5 --retry-delay 5 -o /tmp/activemq.tar.gz "$base/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz" && \
-    curl -fsSL --retry 5 --retry-delay 5 -o /tmp/activemq.tar.gz.asc "$base/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz.asc" && \
+RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
+    curl -fsSLo /tmp/activemq.tar.gz ${DOWNLOAD_URL} && \
+    curl -fsSLo /tmp/activemq.tar.gz.asc ${DOWNLOAD_ASC_URL} && \
+    curl -fsSLo /tmp/KEYS ${DOWNLOAD_KEYS_URL} && \
     gpg --batch --import /tmp/KEYS && \
     gpg --batch --verify /tmp/activemq.tar.gz.asc /tmp/activemq.tar.gz && \
-    tar -xzf /tmp/activemq.tar.gz -C /tmp && \
-    mv "/tmp/apache-activemq-${ACTIVEMQ_VERSION}/"* "${ACTIVEMQ_HOME}" && \
-    rm -rf /tmp/*
-
+    tar -xzf /tmp/activemq.tar.gz -C ${ACTIVEMQ_HOME} --strip-components=1 && \
+    rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS
 
 # ------------------------------------------------
 # Enable JAAS plugin (ActiveMQ 5.x only)
