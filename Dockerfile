@@ -31,40 +31,49 @@ ENV ACTIVEMQ_DATA="/opt/activemq/data"
 ENV ACTIVEMQ_BROKER_NAME="localhost"
 
 
-ENV DOWNLOAD_URL="https://archive.apache.org/dist/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
-ENV DOWNLOAD_ASC_URL="${DOWNLOAD_URL}.asc"
-ENV DOWNLOAD_KEYS_URL="https://downloads.apache.org/activemq/KEYS"
+# ENV DOWNLOAD_URL="https://archive.apache.org/dist/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
+# ENV DOWNLOAD_ASC_URL="${DOWNLOAD_URL}.asc"
+# ENV DOWNLOAD_KEYS_URL="https://downloads.apache.org/activemq/KEYS"
+ENV APACHE_MIRRORS="https://downloads.apache.org https://archive.apache.org"
+
 
 ENV LC_ALL=C
 
 # ------------------------------------------------
 # Install ActiveMQ
 # ------------------------------------------------
-RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
-    curl -sSL --retry 5 --retry-delay 5 --retry-connrefused --fail -o /tmp/activemq.tar.gz ${DOWNLOAD_URL} && \
-    curl -sSL --retry 5 --retry-delay 5 --retry-connrefused --fail -o /tmp/activemq.tar.gz.asc ${DOWNLOAD_ASC_URL} && \
-    curl -sSL --retry 5 --retry-delay 5 --retry-connrefused --fail -o /tmp/KEYS ${DOWNLOAD_KEYS_URL} && \
-    gpg --import /tmp/KEYS && \
-    gpg --verify /tmp/activemq.tar.gz.asc /tmp/activemq.tar.gz && \
+# ------------------------------------------------
+# Install ActiveMQ (mirror probing + GPG verify)
+# ------------------------------------------------
+RUN dnf install -y ca-certificates gnupg curl xmlstarlet && \
+    dnf clean all && \
+    mkdir -p "${ACTIVEMQ_HOME}" /data /var/log/activemq && \
+    active_mirror="" && \
+    for mirror in $APACHE_MIRRORS; do \
+        echo "Probing $mirror"; \
+        if curl -fsSL --connect-timeout 10 "$mirror/activemq/KEYS" -o /tmp/KEYS; then \
+            active_mirror="$mirror"; \
+            break; \
+        fi; \
+    done && \
+    [ -n "$active_mirror" ] && echo "Using mirror: $active_mirror" && \
+    base="$active_mirror/activemq/${ACTIVEMQ_VERSION}" && \
+    for filetype in ".tar.gz" ".tar.gz.asc"; do \
+        curl -fsSL --retry 10 --retry-all-errors --connect-timeout 15 \
+            -o "/tmp/activemq$filetype" \
+            "$base/apache-activemq-${ACTIVEMQ_VERSION}-bin$filetype"; \
+    done && \
+    gpg --batch --import /tmp/KEYS && \
+    gpg --batch --verify /tmp/activemq.tar.gz.asc /tmp/activemq.tar.gz && \
     tar -xzf /tmp/activemq.tar.gz -C /tmp && \
-    mv /tmp/apache-activemq-${ACTIVEMQ_VERSION}/* ${ACTIVEMQ_HOME} && \
-    rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS
+    mv "/tmp/apache-activemq-${ACTIVEMQ_VERSION}/"* "${ACTIVEMQ_HOME}" && \
+    rm -rf /tmp/*
 
 # ------------------------------------------------
 # Install xmlstarlet
 # ------------------------------------------------
 RUN dnf install -y xmlstarlet && \
     dnf clean all
-
-# ------------------------------------------------
-# Make brokerName dynamic in XML
-# ------------------------------------------------
-RUN xmlstarlet ed -L \
-    -N b="http://www.springframework.org/schema/beans" \
-    -N x="http://activemq.apache.org/schema/core" \
-    -u "/b:beans/x:broker/@brokerName" \
-    -v "${ACTIVEMQ_BROKER_NAME}" \
-    ${ACTIVEMQ_HOME}/conf/activemq.xml
 
 # ------------------------------------------------
 # Enable JAAS plugin (ActiveMQ 5.x only)
