@@ -57,6 +57,16 @@ RUN dnf install -y xmlstarlet && \
     dnf clean all
 
 # ------------------------------------------------
+# Make brokerName dynamic in XML
+# ------------------------------------------------
+RUN xmlstarlet ed -L \
+    -N b="http://www.springframework.org/schema/beans" \
+    -N x="http://activemq.apache.org/schema/core" \
+    -u "/b:beans/x:broker/@brokerName" \
+    -v "${ACTIVEMQ_BROKER_NAME}" \
+    ${ACTIVEMQ_HOME}/conf/activemq.xml
+
+# ------------------------------------------------
 # Enable JAAS plugin (ActiveMQ 5.x only)
 # ------------------------------------------------
 RUN xmlstarlet ed -L \
