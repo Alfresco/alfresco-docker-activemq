@@ -72,7 +72,16 @@ fi
 # ------------------------------------------------
 # 5. Set broker name via JVM property (5.x + 6.x)
 # ------------------------------------------------
-export ACTIVEMQ_OPTS="${ACTIVEMQ_OPTS:-} -Dactivemq.brokername=${ACTIVEMQ_BROKER_NAME:-$HOSTNAME}"
+
+# Ensure activemq.xml references JVM property (idempotent)
+xmlstarlet ed -L \
+  -N b="http://www.springframework.org/schema/beans" \
+  -N x="http://activemq.apache.org/schema/core" \
+  -u "/b:beans/x:broker/@brokerName" \
+  -v '${activemq.brokername}' \
+  "${ACTIVEMQ_HOME}/conf/activemq.xml"
+
+export ACTIVEMQ_OPTS="${ACTIVEMQ_OPTS:-} -Dactivemq.brokername=${ACTIVEMQ_BROKER_NAME}"
 
 # ------------------------------------------------
 # 6. Exec (PID 1)
