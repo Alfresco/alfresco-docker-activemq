@@ -30,8 +30,7 @@ ENV ACTIVEMQ_CONF="/opt/activemq/conf"
 ENV ACTIVEMQ_DATA="/opt/activemq/data"
 ENV ACTIVEMQ_BROKER_NAME="localhost"
 
-ENV DOWNLOAD_URL="https://archive.apache.org/dist/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
-ENV DOWNLOAD_ASC_URL="${DOWNLOAD_URL}.asc"
+ENV APACHE_MIRRORS="https://archive.apache.org/dist https://dlcdn.apache.org https://downloads.apache.org"
 ENV DOWNLOAD_KEYS_URL="https://downloads.apache.org/activemq/KEYS"
 
 ENV LC_ALL=C
@@ -41,9 +40,17 @@ RUN dnf install -y xmlstarlet gnupg curl && \
     dnf clean all
 
 # Install ActiveMQ
+
 RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
-    curl -fsSLo /tmp/activemq.tar.gz ${DOWNLOAD_URL} && \
-    curl -fsSLo /tmp/activemq.tar.gz.asc ${DOWNLOAD_ASC_URL} && \
+    for base in ${APACHE_MIRRORS}; do \
+      url="${base}/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"; \
+      echo "Trying $url"; \
+      curl -fsSLo /tmp/activemq.tar.gz "$url" && break; \
+    done && \
+    for base in ${APACHE_MIRRORS}; do \
+      url="${base}/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz.asc"; \
+      curl -fsSLo /tmp/activemq.tar.gz.asc "$url" && break; \
+    done && \
     curl -fsSLo /tmp/KEYS ${DOWNLOAD_KEYS_URL} && \
     gpg --batch --import /tmp/KEYS && \
     gpg --batch --verify /tmp/activemq.tar.gz.asc /tmp/activemq.tar.gz && \
