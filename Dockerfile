@@ -30,22 +30,17 @@ ENV ACTIVEMQ_CONF="/opt/activemq/conf"
 ENV ACTIVEMQ_DATA="/opt/activemq/data"
 ENV ACTIVEMQ_BROKER_NAME="localhost"
 
-
 ENV DOWNLOAD_URL="https://archive.apache.org/dist/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz"
 ENV DOWNLOAD_ASC_URL="${DOWNLOAD_URL}.asc"
 ENV DOWNLOAD_KEYS_URL="https://downloads.apache.org/activemq/KEYS"
 
 ENV LC_ALL=C
 
-# ------------------------------------------------
 # Install dependencies
-# ------------------------------------------------
 RUN dnf install -y xmlstarlet gnupg curl && \
     dnf clean all
 
-# ------------------------------------------------
 # Install ActiveMQ
-# ------------------------------------------------
 RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
     curl -fsSLo /tmp/activemq.tar.gz ${DOWNLOAD_URL} && \
     curl -fsSLo /tmp/activemq.tar.gz.asc ${DOWNLOAD_ASC_URL} && \
@@ -55,23 +50,7 @@ RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
     tar -xzf /tmp/activemq.tar.gz -C ${ACTIVEMQ_HOME} --strip-components=1 && \
     rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS
 
-# # ------------------------------------------------
-# # Enable JAAS plugin (ActiveMQ 5.x only)
-# # ------------------------------------------------
-# RUN xmlstarlet ed -L \
-#     -N b="http://www.springframework.org/schema/beans" \
-#     -N x="http://activemq.apache.org/schema/core" \
-#     -s "/b:beans/x:broker[not(x:plugins)]" \
-#        -t elem -n plugins -v "" \
-#     -s "/b:beans/x:broker/plugins[not(jaasAuthenticationPlugin)]" \
-#        -t elem -n jaasAuthenticationPlugin -v "" \
-#     -i "/b:beans/x:broker/plugins/jaasAuthenticationPlugin[not(@configuration)]" \
-#        -t attr -n configuration -v "activemq" \
-#     ${ACTIVEMQ_HOME}/conf/activemq.xml
-
-# ------------------------------------------------
 # Create runtime user
-# ------------------------------------------------
 RUN groupadd -g ${GROUPID} ${GROUPNAME} && \
     useradd -u ${USERID} -G ${GROUPNAME} ${USERNAME} && \
     chgrp -R ${GROUPNAME} ${ACTIVEMQ_HOME} && \

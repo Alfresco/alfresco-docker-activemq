@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-# ------------------------------------------------
 # Allow remote access to web console (Jetty)
-# ------------------------------------------------
 if [[ -f "${ACTIVEMQ_HOME}/conf/jetty.xml" ]]; then
   echo "Configuring Jetty to bind on 0.0.0.0"
   xmlstarlet ed -L \
@@ -13,10 +11,7 @@ if [[ -f "${ACTIVEMQ_HOME}/conf/jetty.xml" ]]; then
   "${ACTIVEMQ_HOME}/conf/jetty.xml"
 fi
 
-
-# ------------------------------------------------
-# 2. Configure admin user via JAAS (users.properties)
-# ------------------------------------------------
+# Overwrite users.properties with admin credentials
 if [[ -n "${ACTIVEMQ_ADMIN_PASSWORD:-}" ]]; then
   if [[ -n "${ACTIVEMQ_ADMIN_LOGIN:-}" ]]; then
     echo "${ACTIVEMQ_ADMIN_LOGIN}=${ACTIVEMQ_ADMIN_PASSWORD}" \
@@ -27,9 +22,7 @@ if [[ -n "${ACTIVEMQ_ADMIN_PASSWORD:-}" ]]; then
   fi
 fi
 
-# ------------------------------------------------
-# 2b. Grant admin role (groups.properties) – REQUIRED for 6.x
-# ------------------------------------------------
+# Overwrite groups.properties to grant admin roles
 if [[ -n "${ACTIVEMQ_ADMIN_PASSWORD:-}" && -f "${ACTIVEMQ_HOME}/conf/groups.properties" ]]; then
   if [[ -n "${ACTIVEMQ_ADMIN_LOGIN:-}" ]]; then
     echo "admins=${ACTIVEMQ_ADMIN_LOGIN}" \
@@ -40,9 +33,7 @@ if [[ -n "${ACTIVEMQ_ADMIN_PASSWORD:-}" && -f "${ACTIVEMQ_HOME}/conf/groups.prop
   fi
 fi
 
-# ------------------------------------------------
-# 3. ActiveMQ 5.x – configure jetty-realm.properties
-# ------------------------------------------------
+# Overwrite jetty-realm.properties for Jetty web console authentication
 if [[ -n "${ACTIVEMQ_ADMIN_PASSWORD:-}" && -f "${ACTIVEMQ_HOME}/conf/jetty-realm.properties" ]]; then
   if [[ -n "${ACTIVEMQ_ADMIN_LOGIN:-}" ]]; then
     echo "${ACTIVEMQ_ADMIN_LOGIN}: ${ACTIVEMQ_ADMIN_PASSWORD}, admin" \
@@ -53,9 +44,7 @@ if [[ -n "${ACTIVEMQ_ADMIN_PASSWORD:-}" && -f "${ACTIVEMQ_HOME}/conf/jetty-realm
   fi
 fi
 
-# ------------------------------------------------
-# 4. Update credentials.properties
-# ------------------------------------------------
+# Overwrite credentials.properties for tooling / plugin authentication
 if [[ -n "${ACTIVEMQ_ADMIN_PASSWORD:-}" && -f "${ACTIVEMQ_HOME}/conf/credentials.properties" ]]; then
   if [[ -n "${ACTIVEMQ_ADMIN_LOGIN:-}" ]]; then
     USERNAME="${ACTIVEMQ_ADMIN_LOGIN}"
@@ -69,11 +58,7 @@ activemq.password=${ACTIVEMQ_ADMIN_PASSWORD}
 EOF
 fi
 
-# ------------------------------------------------
-# 5. Set broker name via JVM property (5.x + 6.x)
-# ------------------------------------------------
-
-# Ensure activemq.xml references JVM property (idempotent)
+# Set broker name placeholder in activemq.xml
 xmlstarlet ed -L \
   -N b="http://www.springframework.org/schema/beans" \
   -N x="http://activemq.apache.org/schema/core" \
@@ -83,7 +68,4 @@ xmlstarlet ed -L \
 
 export ACTIVEMQ_OPTS="${ACTIVEMQ_OPTS:-} -Dactivemq.brokername=${ACTIVEMQ_BROKER_NAME}"
 
-# ------------------------------------------------
-# 6. Exec (PID 1)
-# ------------------------------------------------
 exec "${ACTIVEMQ_HOME}/bin/$@"

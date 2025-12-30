@@ -1,6 +1,9 @@
 # Alfresco ActiveMQ docker image
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/Alfresco/alfresco-docker-activemq/build.yml?branch=master)](https://github.com/Alfresco/alfresco-docker-activemq/actions/workflows/build.yml)
+![6.2-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/6.2-jre17-rockylinux8)
+![5.19-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/5.19-jre17-rockylinux8)
+![5.18-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/5.18-jre17-rockylinux8)
 ![5.17-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/5.17-jre17-rockylinux8)
 ![5.16-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/5.16-jre17-rockylinux8)
 
