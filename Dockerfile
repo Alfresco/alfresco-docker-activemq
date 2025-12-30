@@ -48,7 +48,7 @@ RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
     gpg --batch --import /tmp/KEYS && \
     gpg --batch --verify /tmp/activemq.tar.gz.asc /tmp/activemq.tar.gz && \
     tar -xzf /tmp/activemq.tar.gz -C ${ACTIVEMQ_HOME} --strip-components=1 && \
-    rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS
+    rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS /root/.gnupg
 
 # Create runtime user
 RUN groupadd -g ${GROUPID} ${GROUPNAME} && \
