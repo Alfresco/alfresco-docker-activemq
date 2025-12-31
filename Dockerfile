@@ -57,9 +57,7 @@ RUN mkdir -p ${ACTIVEMQ_HOME} /data /var/log/activemq && \
     tar -xzf /tmp/activemq.tar.gz -C ${ACTIVEMQ_HOME} --strip-components=1 && \
     rm -rf /tmp/activemq.tar.gz /tmp/activemq.tar.gz.asc /tmp/KEYS /root/.gnupg
 
-# ------------------------------------------------
-# Enable JAAS plugin (ActiveMQ 5.x only)
-# ------------------------------------------------
+# Enable jaas authentication
 RUN xmlstarlet ed -L \
     -N b="http://www.springframework.org/schema/beans" \
     -N x="http://activemq.apache.org/schema/core" \
