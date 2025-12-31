@@ -2,15 +2,17 @@ ARG JDIST
 ARG JAVA_MAJOR
 ARG DISTRIB_NAME
 ARG DISTRIB_MAJOR
-ARG ACTIVEMQ_VERSION
 
 FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR} AS builder_activemq
+
+ARG ACTIVEMQ_VERSION
 
 ENV ACTIVEMQ_HOME="/opt/activemq"
 ENV ACTIVEMQ_BASE="/opt/activemq"
 ENV ACTIVEMQ_CONF="/opt/activemq/conf"
 ENV ACTIVEMQ_DATA="/opt/activemq/data"
 ENV ACTIVEMQ_BROKER_NAME="localhost"
+
 
 ENV APACHE_MIRRORS="https://archive.apache.org/dist https://dlcdn.apache.org https://downloads.apache.org"
 ENV DOWNLOAD_KEYS_URL="https://downloads.apache.org/activemq/KEYS"
