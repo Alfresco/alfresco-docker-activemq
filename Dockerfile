@@ -98,6 +98,8 @@ ENV ACTIVEMQ_BROKER_NAME="localhost"
 
 ENV LC_ALL=C
 
+COPY --from=builder_activemq --chown=amq:Alfresco /opt/activemq ${ACTIVEMQ_HOME}
+
 # Create runtime user
 RUN groupadd -g ${GROUPID} ${GROUPNAME} && \
     useradd -u ${USERID} -G ${GROUPNAME} ${USERNAME} && \
@@ -105,8 +107,6 @@ RUN groupadd -g ${GROUPID} ${GROUPNAME} && \
     chown -h ${USERNAME}:${GROUPNAME} -R $ACTIVEMQ_HOME && \
     chown ${USERNAME}:${GROUPNAME} ${ACTIVEMQ_DATA}/activemq.log && \
     chmod g+rwx ${ACTIVEMQ_DATA}
-
-COPY --from=builder_activemq --chown=amq:Alfresco /opt/activemq ${ACTIVEMQ_HOME}
 
 # Web Console
 EXPOSE 8161
