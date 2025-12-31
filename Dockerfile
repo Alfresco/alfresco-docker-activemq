@@ -2,27 +2,9 @@ ARG JDIST
 ARG JAVA_MAJOR
 ARG DISTRIB_NAME
 ARG DISTRIB_MAJOR
-
-FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR} AS activemq_image
-
 ARG ACTIVEMQ_VERSION
 
-LABEL org.label-schema.schema-version="1.0" \
-    org.label-schema.name="Alfresco ActiveMQ" \
-    org.label-schema.vendor="Alfresco" \
-    org.label-schema.build-date="$CREATED" \
-    org.opencontainers.image.title="Alfresco ActiveMQ" \
-    org.opencontainers.image.vendor="Alfresco" \
-    org.opencontainers.image.revision="$REVISION" \
-    org.opencontainers.image.source="https://github.com/Alfresco/alfresco-docker-activemq" \
-    org.opencontainers.image.created="$CREATED" \
-    org.opencontainers.image.version="$ACTIVEMQ_VERSION"
-
-# Set default user information
-ARG GROUPNAME=Alfresco
-ARG GROUPID=1000
-ARG USERNAME=amq
-ARG USERID=33031
+FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR} AS builder_activemq
 
 ENV ACTIVEMQ_HOME="/opt/activemq"
 ENV ACTIVEMQ_BASE="/opt/activemq"
@@ -69,6 +51,53 @@ RUN xmlstarlet ed -L \
        -t attr -n configuration -v "activemq" \
     ${ACTIVEMQ_HOME}/conf/activemq.xml
 
+# Build-time brokerName placeholder
+RUN xmlstarlet ed -L \
+    -N b="http://www.springframework.org/schema/beans" \
+    -N x="http://activemq.apache.org/schema/core" \
+    -u "/b:beans/x:broker/@brokerName" \
+    -v '${activemq.brokername}' \
+    ${ACTIVEMQ_HOME}/conf/activemq.xml
+
+# Configure Jetty to bind on all interfaces (build-time)
+RUN if [ -f "${ACTIVEMQ_HOME}/conf/jetty.xml" ]; then \
+      echo "Configuring Jetty to bind on 0.0.0.0"; \
+      xmlstarlet ed -L \
+        -N b="http://www.springframework.org/schema/beans" \
+        -u "//b:bean[@id='jettyPort']/b:property[@name='host']/@value" \
+        -v "0.0.0.0" \
+        "${ACTIVEMQ_HOME}/conf/jetty.xml"; \
+    fi
+
+FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR} AS activemq_image
+
+LABEL org.label-schema.schema-version="1.0" \
+    org.label-schema.name="Alfresco ActiveMQ" \
+    org.label-schema.vendor="Alfresco" \
+    org.label-schema.build-date="$CREATED" \
+    org.opencontainers.image.title="Alfresco ActiveMQ" \
+    org.opencontainers.image.vendor="Alfresco" \
+    org.opencontainers.image.revision="$REVISION" \
+    org.opencontainers.image.source="https://github.com/Alfresco/alfresco-docker-activemq" \
+    org.opencontainers.image.created="$CREATED" \
+    org.opencontainers.image.version="$ACTIVEMQ_VERSION"
+
+ARG ACTIVEMQ_VERSION
+
+# Set default user information
+ARG GROUPNAME=Alfresco
+ARG GROUPID=1000
+ARG USERNAME=amq
+ARG USERID=33031
+
+ENV ACTIVEMQ_HOME="/opt/activemq"
+ENV ACTIVEMQ_BASE="/opt/activemq"
+ENV ACTIVEMQ_CONF="/opt/activemq/conf"
+ENV ACTIVEMQ_DATA="/opt/activemq/data"
+ENV ACTIVEMQ_BROKER_NAME="localhost"
+
+ENV LC_ALL=C
+
 # Create runtime user
 RUN groupadd -g ${GROUPID} ${GROUPNAME} && \
     useradd -u ${USERID} -G ${GROUPNAME} ${USERNAME} && \
@@ -76,6 +105,8 @@ RUN groupadd -g ${GROUPID} ${GROUPNAME} && \
     chown -h ${USERNAME}:${GROUPNAME} -R $ACTIVEMQ_HOME && \
     chown ${USERNAME}:${GROUPNAME} ${ACTIVEMQ_DATA}/activemq.log && \
     chmod g+rwx ${ACTIVEMQ_DATA}
+
+COPY --from=builder_activemq --chown=amq:Alfresco /opt/activemq ${ACTIVEMQ_HOME}
 
 # Web Console
 EXPOSE 8161
