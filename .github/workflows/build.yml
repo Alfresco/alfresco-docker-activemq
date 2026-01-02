@@ -117,12 +117,13 @@ jobs:
 
           echo "Checking JAAS authentication plugin..."
           JAAS_PLUGIN=$(docker run --rm local/${{ env.IMAGE_REPOSITORY }}:ci \
-            grep -q 'jaasAuthenticationPlugin' /opt/activemq/conf/activemq.xml && echo "enabled" || echo "missing")
-          if [ "$JAAS_PLUGIN" = "enabled" ]; then
-            echo "JAAS authentication plugin is enabled"
-          else
-            echo "JAAS authentication plugin missing"; exit 7
-          fi
+            grep -Fx '<jaasAuthenticationPlugin configuration="activemq"/>' \
+            /opt/activemq/conf/activemq.xml \
+            >/dev/null || {
+              echo "JAAS authentication plugin line is missing or incorrect"
+              exit 7
+            }
+          echo "JAAS authentication plugin is correctly configured"
 
       - name: Build multi-arch and push ActiveMQ
         uses: docker/build-push-action@v6
