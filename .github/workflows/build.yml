@@ -114,23 +114,13 @@ jobs:
           echo "==============================================="
 
           echo "Checking ActiveMQ brokerName..."
-
-          EXPECTED_BROKER_NAME="${{ steps.vars.outputs.activemq_brokername }}"
-
-          BROKER_NAME="$(docker run --rm --entrypoint /bin/grep \
-            local/${{ env.IMAGE_REPOSITORY }}:ci \
-            -Po '(?<=brokerName=")[^"]+' /opt/activemq/conf/activemq.xml || true)"
-
-          if [ -z "$BROKER_NAME" ]; then
-            echo "❌ brokerName not found in activemq.xml"
-            exit 6
-          fi
-
+          EXPECTED_BROKER_NAME='${{ steps.vars.outputs.activemq_brokername }}'
+          BROKER_NAME=$(docker run --rm local/${{ env.IMAGE_REPOSITORY }}:ci \
+            grep -Po '(?<=brokerName=")[^"]+' /opt/activemq/conf/activemq.xml || true)
           if [ "$BROKER_NAME" = "$EXPECTED_BROKER_NAME" ]; then
-            echo "✅ brokerName is correctly set to $BROKER_NAME"
+            echo "brokerName is correctly set to $BROKER_NAME"
           else
-            echo "❌ brokerName incorrect: $BROKER_NAME (expected: $EXPECTED_BROKER_NAME)"
-            exit 6
+            echo "brokerName incorrect: $BROKER_NAME"; exit 6
           fi
 
           echo "Checking JAAS authentication plugin..."
