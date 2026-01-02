@@ -102,7 +102,6 @@ jobs:
             CREATED=${{ steps.vars.outputs.image_created }}
           tags: |
             local/${{ env.IMAGE_REPOSITORY }}:ci
-          platforms: linux/amd64,linux/arm64/v8
 
       - name: Test ActiveMQ image
         run: |
