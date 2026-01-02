@@ -5,7 +5,6 @@
 ![5.19-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/5.19-jre17-rockylinux8)
 ![5.18-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/5.18-jre17-rockylinux8)
 ![5.17-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/5.17-jre17-rockylinux8)
-![5.16-jre17-rockylinux8](https://img.shields.io/docker/v/alfresco/alfresco-activemq/5.16-jre17-rockylinux8)
 
 This repository produces multi-arch ActiveMQ images compatible with all the
 supported Alfresco versions that will be used by Alfresco engineering teams,
@@ -18,17 +17,15 @@ Multiple tags are available depending on the versions/flavours:
 
 Activemq version | Java version | OS           | Image tag                | Size
 -----------------|--------------|--------------|--------------------------|----------------
-5.16             | 17           | Rockylinux 8 | `5.16-jre17-rockylinux8` | ![5.16 size][1]
-5.17             | 17           | Rockylinux 8 | `5.17-jre17-rockylinux8` | ![5.17 size][2]
-5.18             | 17           | Rockylinux 8 | `5.18-jre17-rockylinux8` | ![5.18 size][3]
-5.19             | 17           | Rockylinux 8 | `5.19-jre17-rockylinux8` | ![5.19 size][4]
-6.2              | 17           | Rockylinux 8 | `6.2-jre17-rockylinux8`  | ![6.2 size][5]
+5.17             | 17           | Rockylinux 8 | `5.17-jre17-rockylinux8` | ![5.17 size][1]
+5.18             | 17           | Rockylinux 8 | `5.18-jre17-rockylinux8` | ![5.18 size][2]
+5.19             | 17           | Rockylinux 8 | `5.19-jre17-rockylinux8` | ![5.19 size][3]
+6.2              | 17           | Rockylinux 8 | `6.2-jre17-rockylinux8`  | ![6.2 size][4]
 
-[1]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.16-jre17-rockylinux8
-[2]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.17-jre17-rockylinux8
-[3]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.18-jre17-rockylinux8
-[4]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.19-jre17-rockylinux8
-[5]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/6.2-jre17-rockylinux8
+[1]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.17-jre17-rockylinux8
+[2]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.18-jre17-rockylinux8
+[3]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.19-jre17-rockylinux8
+[4]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/6.2-jre17-rockylinux8
 
 Additional tags available:
 
