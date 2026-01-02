@@ -110,7 +110,7 @@ jobs:
           EXPECTED_BROKER_NAME='${activemq.brokername}'
 
           BROKER_NAME="$(docker run --rm --entrypoint /bin/grep \
-            "$IMAGE" \
+            local/${{ env.IMAGE_REPOSITORY }}:ci    \
             -Po '(?<=brokerName=")[^"]+' /opt/activemq/conf/activemq.xml || true)"
 
           if [ "$BROKER_NAME" = "$EXPECTED_BROKER_NAME" ]; then
@@ -121,7 +121,7 @@ jobs:
           fi
 
           docker run --rm --entrypoint /bin/grep \
-            "$IMAGE" \
+            local/${{ env.IMAGE_REPOSITORY }}:ci  \
             -q '<jaasAuthenticationPlugin configuration="activemq"' \
             /opt/activemq/conf/activemq.xml || {
               echo "❌ JAAS authentication plugin missing"
