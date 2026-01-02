@@ -87,7 +87,45 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push
+      - name: Build ActiveMQ image locally
+        uses: docker/build-push-action@v6
+        with:
+          load: true
+          target: activemq_image
+          build-args: |
+            ACTIVEMQ_VERSION=${{ steps.vars.outputs.activemq_version }}
+            JDIST=${{ matrix.jdist }}
+            DISTRIB_NAME=${{ matrix.base_image.flavor }}
+            DISTRIB_MAJOR=${{ matrix.base_image.major }}
+            JAVA_MAJOR=${{ matrix.java_major }}
+            REVISION=${{ github.run_number }}
+            CREATED=${{ steps.vars.outputs.image_created }}
+          tags: |
+            local/${{ env.IMAGE_REPOSITORY }}:ci
+          platforms: linux/amd64,linux/arm64/v8
+
+      - name: Test ActiveMQ image
+        run: |
+          echo "Checking ActiveMQ brokerName..."
+          EXPECTED_BROKER_NAME='${{ steps.vars.outputs.activemq_brokername }}'
+          BROKER_NAME=$(docker run --rm local/${{ env.IMAGE_REPOSITORY }}:ci \
+            grep -Po '(?<=brokerName=")[^"]+' /opt/activemq/conf/activemq.xml || true)
+          if [ "$BROKER_NAME" = "$EXPECTED_BROKER_NAME" ]; then
+            echo "brokerName is correctly set to $BROKER_NAME"
+          else
+            echo "brokerName incorrect: $BROKER_NAME"; exit 6
+          fi
+
+          echo "Checking JAAS authentication plugin..."
+          JAAS_PLUGIN=$(docker run --rm local/${{ env.IMAGE_REPOSITORY }}:ci \
+            grep -q 'jaasAuthenticationPlugin' /opt/activemq/conf/activemq.xml && echo "enabled" || echo "missing")
+          if [ "$JAAS_PLUGIN" = "enabled" ]; then
+            echo "JAAS authentication plugin is enabled"
+          else
+            echo "JAAS authentication plugin missing"; exit 7
+          fi
+
+      - name: Build multi-arch and push ActiveMQ
         uses: docker/build-push-action@v6
         with:
           push: ${{ github.actor != 'dependabot[bot]' }}
@@ -106,3 +144,4 @@ jobs:
           provenance: false
           target: activemq_image
           platforms: linux/amd64,linux/arm64/v8
+ 
