@@ -107,33 +107,28 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "==== ActiveMQ configuration (activemq.xml) ===="
-          docker run --rm --entrypoint /bin/cat \
-            local/${{ env.IMAGE_REPOSITORY }}:ci \
-            /opt/activemq/conf/activemq.xml
-          echo "==============================================="
+          EXPECTED_BROKER_NAME='${activemq.brokername}'
 
-          echo "Checking ActiveMQ brokerName..."
-          EXPECTED_BROKER_NAME='${{ steps.vars.outputs.activemq_brokername }}'
-          BROKER_NAME=$(docker run --rm local/${{ env.IMAGE_REPOSITORY }}:ci \
-            grep -Po '(?<=brokerName=")[^"]+' /opt/activemq/conf/activemq.xml || true)
+          BROKER_NAME="$(docker run --rm --entrypoint /bin/grep \
+            "$IMAGE" \
+            -Po '(?<=brokerName=")[^"]+' /opt/activemq/conf/activemq.xml || true)"
+
           if [ "$BROKER_NAME" = "$EXPECTED_BROKER_NAME" ]; then
-            echo "brokerName is correctly set to $BROKER_NAME"
+            echo "✅ brokerName placeholder is correctly set $BROKER_NAME"
           else
-            echo "brokerName incorrect: $BROKER_NAME"; exit 6
+            echo "❌ brokerName incorrect: $BROKER_NAME"
+            exit 6
           fi
 
-          echo "Checking JAAS authentication plugin..."
-
           docker run --rm --entrypoint /bin/grep \
-            local/${{ env.IMAGE_REPOSITORY }}:ci \
-            -Fx '<jaasAuthenticationPlugin configuration="activemq"/>' \
-            /opt/activemq/conf/activemq.xml >/dev/null || {
-              echo "❌ JAAS authentication plugin line is missing or incorrect"
+            "$IMAGE" \
+            -q '<jaasAuthenticationPlugin configuration="activemq"' \
+            /opt/activemq/conf/activemq.xml || {
+              echo "❌ JAAS authentication plugin missing"
               exit 7
             }
 
-          echo "✅ JAAS authentication plugin is correctly configured"
+          echo "✅ JAAS authentication plugin is configured"
 
 
 
