@@ -1,6 +1,11 @@
-ARG ACTIVEMQ_VERSION
+ARG JDIST
+ARG JAVA_MAJOR
+ARG DISTRIB_NAME
+ARG DISTRIB_MAJOR
 
 FROM debian:12-slim AS activemq_build
+
+ARG ACTIVEMQ_VERSION
 
 ENV ACTIVEMQ_HOME=/opt/activemq
 ENV APACHE_MIRRORS="https://archive.apache.org/dist https://dlcdn.apache.org https://downloads.apache.org"
@@ -50,11 +55,6 @@ RUN if [ -f "${ACTIVEMQ_HOME}/conf/jetty.xml" ]; then \
         -v "0.0.0.0" \
         "${ACTIVEMQ_HOME}/conf/jetty.xml"; \
     fi
-
-ARG JDIST
-ARG JAVA_MAJOR
-ARG DISTRIB_NAME
-ARG DISTRIB_MAJOR
 
 FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR} as activemq_image
 
