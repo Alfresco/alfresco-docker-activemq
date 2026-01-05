@@ -50,4 +50,4 @@ fi
 
 export ACTIVEMQ_OPTS="${ACTIVEMQ_OPTS:-} -Dactivemq.brokername=${ACTIVEMQ_BROKER_NAME}"
 
-exec "${ACTIVEMQ_HOME}/bin/$@"
+exec "${ACTIVEMQ_HOME}/bin/$1" "${@:2}"
