@@ -106,7 +106,7 @@ jobs:
       - name: Test ActiveMQ image
         run: |
           ./tests/test-activemq.sh local/${IMAGE_REPOSITORY}:ci
-          
+
       - name: Build multi-arch and push ActiveMQ
         uses: docker/build-push-action@v6
         with:
