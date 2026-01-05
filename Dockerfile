@@ -67,8 +67,8 @@ RUN xmlstarlet ed -L \
     -i "/b:beans/x:broker/plugins/jaasAuthenticationPlugin[not(@configuration)]" \
        -t attr -n configuration -v "activemq" \
     ${ACTIVEMQ_HOME}/conf/activemq.xml
-
-FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR} as activemq_image
+ 
+FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR} AS activemq_image
 
 ARG ACTIVEMQ_VERSION
 
