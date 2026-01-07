@@ -89,7 +89,8 @@ ARG ACTIVEMQ_VERSION
 
 ENV CREATED=${CREATED} \
     REVISION=${REVISION} \
-    ACTIVEMQ_VERSION=${ACTIVEMQ_VERSION}
+    ACTIVEMQ_VERSION=${ACTIVEMQ_VERSION} \
+    ACTIVEMQ_BROKER_NAME=${ACTIVEMQ_BROKER_NAME:-localhost}
 
 LABEL org.label-schema.schema-version="1.0" \
     org.label-schema.name="Alfresco ActiveMQ" \
@@ -111,7 +112,6 @@ ENV ACTIVEMQ_HOME=/opt/activemq
 ENV ACTIVEMQ_BASE=/opt/activemq
 ENV ACTIVEMQ_CONF=/opt/activemq/conf
 ENV ACTIVEMQ_DATA=/opt/activemq/data
-ENV ACTIVEMQ_BROKER_NAME=localhost
 ENV LC_ALL=C
 
 # Create runtime user
