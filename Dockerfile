@@ -83,7 +83,8 @@ xmlstarlet ed -L \
 EOF
 
 FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR} AS activemq_image
-
+ARG CREATED
+ARG REVISION
 ARG ACTIVEMQ_VERSION
 
 ENV CREATED=${CREATED} \
