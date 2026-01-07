@@ -34,7 +34,9 @@ BROKER_NAME=$(docker exec "$CONTAINER" \
   | sed -n 's/.*brokerName=\([^,]*\).*/\1/p' | head -n1)
 
 # Debug visibility: dump config before asserting
+docker exec "$CONTAINER" env | grep ACTIVEMQ
 docker exec "$CONTAINER" cat /opt/activemq/conf/activemq.xml
+docker exec "$CONTAINER" /opt/activemq/bin/activemq query --objname type=Broker,brokerName=*
 
 if [[ "$BROKER_NAME" != "$EXPECTED_BROKER_NAME" ]]; then
   echo "❌ brokerName mismatch: $BROKER_NAME (expected $EXPECTED_BROKER_NAME)"
