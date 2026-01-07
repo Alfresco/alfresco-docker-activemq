@@ -5,6 +5,9 @@ IMAGE="${1:?Image name required as first argument}"
 CONTAINER="amq-runtime-test"
 EXPECTED_BROKER_NAME="${EXPECTED_BROKER_NAME:-ci-broker}"
 
+echo "▶ Inspecting labels for image $IMAGE..."
+docker image inspect "$IMAGE" --format '{{json .Config.Labels}}'
+
 cleanup() {
   docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
 }
