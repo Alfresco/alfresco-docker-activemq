@@ -49,22 +49,22 @@ if [[ "$BROKER_NAME" != "$EXPECTED_BROKER_NAME" ]]; then
 fi
 echo "✅ brokerName applied at runtime: $BROKER_NAME"
 
-# JAAS authentication enforcement (6.x+ only)
+# authentication tests with valid credentials
+if ! docker exec "$CONTAINER" \
+  /opt/activemq/bin/activemq producer \
+  --broker tcp://localhost:61616 \
+  --user admin \
+  --password admin \
+  --destination queue:test \
+  --message "auth-ok" \
+  >/dev/null 2>&1; then
+  echo "❌ Valid credentials were rejected (unexpected)"
+  exit 1
+fi
+echo "✅ Valid credentials accepted"
+
+# authentication tests with invalid credentials(JAAS enforcement >= 6.x)
 if (( ${ACTIVEMQ_VERSION%%.*} >= 6 )); then
-  echo "▶ Verifying JAAS authentication (ActiveMQ ${ACTIVEMQ_VERSION})..."
-
-  # valid credentials must succeed
-  docker exec "$CONTAINER" \
-    /opt/activemq/bin/activemq producer \
-    --broker tcp://localhost:61616 \
-    --user admin \
-    --password admin \
-    --destination queue:test \
-    --message "auth-ok" \
-    >/dev/null 2>&1
-  echo "✅ Valid credentials accepted"
-
-  # invalid credentials must fail
   if docker exec "$CONTAINER" \
     /opt/activemq/bin/activemq producer \
     --broker tcp://localhost:61616 \
@@ -76,10 +76,20 @@ if (( ${ACTIVEMQ_VERSION%%.*} >= 6 )); then
     echo "❌ JAAS authentication FAILED (invalid credentials accepted)"
     exit 1
   fi
-
-  echo "✅ JAAS authentication enforced correctly"
+  echo "✅ JAAS authentication enforced correctly (6.x+)"
 else
-  echo "ℹ️ Skipping JAAS authentication test for ActiveMQ ${ACTIVEMQ_VERSION} (< 6.x)"
+  if ! docker exec "$CONTAINER" \
+    /opt/activemq/bin/activemq producer \
+    --broker tcp://localhost:61616 \
+    --user baduser \
+    --password badpass \
+    --destination queue:test \
+    --message "auth-fail" \
+    >/dev/null 2>&1; then
+    echo "❌ Invalid credentials were rejected (unexpected for 5.x)"
+    exit 1
+  fi
+  echo "✅ Authentication not enforced (expected for 5.x)"
 fi
 
 echo "✅ All tests passed for image $IMAGE"
