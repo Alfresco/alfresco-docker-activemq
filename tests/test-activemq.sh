@@ -82,5 +82,4 @@ else
   echo "ℹ️ Skipping JAAS authentication test for ActiveMQ ${ACTIVEMQ_VERSION} (< 6.x)"
 fi
 
-echo "✅ Invalid credentials rejected"
-echo "🎉 Tests passed"
+echo "✅ All tests passed for image $IMAGE"
