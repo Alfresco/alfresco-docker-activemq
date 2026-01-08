@@ -6,7 +6,14 @@ CONTAINER="amq-runtime-test"
 EXPECTED_BROKER_NAME="${EXPECTED_BROKER_NAME:-ci-broker}"
 
 echo "▶ Inspecting labels for image $IMAGE..."
-docker image inspect "$IMAGE" --format '{{json .Config.Labels}}'
+CREATED=$(docker image inspect "$IMAGE" \
+  --format '{{ index .Config.Labels "org.opencontainers.image.created" }}')
+
+if [[ -z "$CREATED" ]]; then
+  echo "❌ Image label 'org.opencontainers.image.created' is missing or empty"
+  exit 1
+fi
+echo "✅ Image created date present: $CREATED"
 
 cleanup() {
   docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
@@ -42,32 +49,47 @@ if [[ "$BROKER_NAME" != "$EXPECTED_BROKER_NAME" ]]; then
 fi
 echo "✅ brokerName applied at runtime: $BROKER_NAME"
 
-# JAAS authentication enforcement
-echo "▶ Verifying JAAS authentication..."
-
-# valid credentials must succeed
-docker exec "$CONTAINER" \
+# authentication tests with valid credentials
+if ! docker exec "$CONTAINER" \
   /opt/activemq/bin/activemq producer \
   --broker tcp://localhost:61616 \
   --user admin \
   --password admin \
   --destination queue:test \
   --message "auth-ok" \
-  >/dev/null 2>&1
-echo "✅ Valid credentials accepted"
-
-# invalid credentials must fail
-if docker exec "$CONTAINER" \
-  /opt/activemq/bin/activemq producer \
-  --broker tcp://localhost:61616 \
-  --user baduser \
-  --password badpass \
-  --destination queue:test \
-  --message "auth-fail" \
   >/dev/null 2>&1; then
-  echo "❌ JAAS authentication FAILED (invalid credentials accepted)"
+  echo "❌ Valid credentials were rejected (unexpected)"
   exit 1
 fi
+echo "✅ Valid credentials accepted"
 
-echo "✅ Invalid credentials rejected"
-echo "🎉 Runtime brokerName and JAAS tests passed"
+# authentication tests with invalid credentials (JAAS enforcement >= 6.x)
+if (( ${ACTIVEMQ_VERSION%%.*} >= 6 )); then
+  if docker exec "$CONTAINER" \
+    /opt/activemq/bin/activemq producer \
+    --broker tcp://localhost:61616 \
+    --user baduser \
+    --password badpass \
+    --destination queue:test \
+    --message "auth-fail" \
+    >/dev/null 2>&1; then
+    echo "❌ JAAS authentication FAILED (invalid credentials accepted)"
+    exit 1
+  fi
+  echo "✅ JAAS authentication enforced correctly (6.x+)"
+else
+  if ! docker exec "$CONTAINER" \
+    /opt/activemq/bin/activemq producer \
+    --broker tcp://localhost:61616 \
+    --user baduser \
+    --password badpass \
+    --destination queue:test \
+    --message "auth-fail" \
+    >/dev/null 2>&1; then
+    echo "❌ Invalid credentials were rejected (unexpected for 5.x)"
+    exit 1
+  fi
+  echo "✅ Authentication not enforced (expected for 5.x)"
+fi
+
+echo "✅ All tests passed for image $IMAGE"

@@ -69,17 +69,19 @@ if [ -f "${ACTIVEMQ_HOME}/conf/jetty.xml" ]; then
     "${ACTIVEMQ_HOME}/conf/jetty.xml"
 fi
 
-# Enable JAAS authentication
-xmlstarlet ed -L \
-  -N b="http://www.springframework.org/schema/beans" \
-  -N x="http://activemq.apache.org/schema/core" \
-  -s "/b:beans/x:broker[not(x:plugins)]" \
-     -t elem -n plugins -v "" \
-  -s "/b:beans/x:broker/plugins[not(jaasAuthenticationPlugin)]" \
-     -t elem -n jaasAuthenticationPlugin -v "" \
-  -i "/b:beans/x:broker/plugins/jaasAuthenticationPlugin[not(@configuration)]" \
-     -t attr -n configuration -v "activemq" \
-  "${ACTIVEMQ_HOME}/conf/activemq.xml"
+# Enable JAAS authentication for ActiveMQ 6.x and above
+if (( ${ACTIVEMQ_VERSION%%.*} >= 6 )); then
+  xmlstarlet ed -L \
+    -N b="http://www.springframework.org/schema/beans" \
+    -N x="http://activemq.apache.org/schema/core" \
+    -s "/b:beans/x:broker[not(x:plugins)]" \
+       -t elem -n plugins -v "" \
+    -s "/b:beans/x:broker/plugins[not(jaasAuthenticationPlugin)]" \
+       -t elem -n jaasAuthenticationPlugin -v "" \
+    -i "/b:beans/x:broker/plugins/jaasAuthenticationPlugin[not(@configuration)]" \
+       -t attr -n configuration -v "activemq" \
+    "${ACTIVEMQ_HOME}/conf/activemq.xml"
+fi
 EOF
 
 FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR} AS activemq_image

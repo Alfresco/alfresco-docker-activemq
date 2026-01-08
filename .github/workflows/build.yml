@@ -104,6 +104,8 @@ jobs:
             local/${{ env.IMAGE_REPOSITORY }}:ci
 
       - name: Test ActiveMQ image
+        env:
+          ACTIVEMQ_VERSION: ${{ steps.vars.outputs.activemq_version }}
         run: |
           ./tests/test-activemq.sh local/${IMAGE_REPOSITORY}:ci
 
