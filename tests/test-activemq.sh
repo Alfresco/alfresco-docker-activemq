@@ -63,7 +63,7 @@ if ! docker exec "$CONTAINER" \
 fi
 echo "✅ Valid credentials accepted"
 
-# authentication tests with invalid credentials(JAAS enforcement >= 6.x)
+# authentication tests with invalid credentials (JAAS enforcement >= 6.x)
 if (( ${ACTIVEMQ_VERSION%%.*} >= 6 )); then
   if docker exec "$CONTAINER" \
     /opt/activemq/bin/activemq producer \
