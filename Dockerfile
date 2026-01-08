@@ -81,6 +81,7 @@ if (( ${ACTIVEMQ_VERSION%%.*} >= 6 )); then
     -i "/b:beans/x:broker/plugins/jaasAuthenticationPlugin[not(@configuration)]" \
        -t attr -n configuration -v "activemq" \
     "${ACTIVEMQ_HOME}/conf/activemq.xml"
+fi    
 EOF
 
 FROM alfresco/alfresco-base-java:${JDIST}${JAVA_MAJOR}-${DISTRIB_NAME}${DISTRIB_MAJOR} AS activemq_image
