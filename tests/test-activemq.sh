@@ -27,7 +27,6 @@ docker run -d \
   "$IMAGE" >/dev/null
 
 echo "▶ Waiting for broker to be ready..."
-BROKER_NAME=""
 for i in {1..30}; do
   BROKER_NAME=$(docker exec "$CONTAINER" \
     /opt/activemq/bin/activemq query \
@@ -44,7 +43,6 @@ if [[ -z "$BROKER_NAME" ]]; then
   echo "❌ brokerName never became available after waiting"
   exit 1
 fi
-echo "✅ brokerName applied at runtime: $BROKER_NAME"
 
 if [[ "$BROKER_NAME" != "$EXPECTED_BROKER_NAME" ]]; then
   echo "❌ brokerName mismatch: $BROKER_NAME (expected $EXPECTED_BROKER_NAME)"
