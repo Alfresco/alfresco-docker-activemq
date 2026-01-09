@@ -28,20 +28,21 @@ docker run -d \
 
 echo "▶ Waiting for broker to be ready..."
 for i in {1..30}; do
-  if docker exec "$CONTAINER" \
+  BROKER_NAME=$(docker exec "$CONTAINER" \
     /opt/activemq/bin/activemq query \
-    --objname type=Broker,brokerName=* \
-    >/dev/null 2>&1; then
+    --objname type=Broker,brokerName=* 2>/dev/null \
+    | sed -n 's/.*brokerName=\([^,]*\).*/\1/p' | head -n1)
+
+  if [[ -n "$BROKER_NAME" ]]; then
     break
   fi
   sleep 2
 done
 
-# brokerName runtime verification
-BROKER_NAME=$(docker exec "$CONTAINER" \
-  /opt/activemq/bin/activemq query \
-  --objname type=Broker,brokerName=* \
-  | sed -n 's/.*brokerName=\([^,]*\).*/\1/p' | head -n1)
+if [[ -z "$BROKER_NAME" ]]; then
+  echo "❌ brokerName never became available after waiting"
+  exit 1
+fi
 
 if [[ "$BROKER_NAME" != "$EXPECTED_BROKER_NAME" ]]; then
   echo "❌ brokerName mismatch: $BROKER_NAME (expected $EXPECTED_BROKER_NAME)"
