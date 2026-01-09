@@ -22,7 +22,7 @@ Activemq version | Java version | OS           | Image tag                | Size
 5.19             | 17           | Rockylinux 8 | `5.19-jre17-rockylinux8` | ![5.19 size][3]
 6.2              | 17           | Rockylinux 8 | `6.2-jre17-rockylinux8`  | ![6.2 size][4]
 
-> **Note for 6.2 or above:** Authentication is enforced. Configuring `ACTIVEMQ_ADMIN_LOGIN` and `ACTIVEMQ_ADMIN_PASSWORD` is now required, even if it was optional in earlier versions.
+> **Note for ActiveMQ 6.2 or above:** Authentication is enforced. Configuring `ACTIVEMQ_ADMIN_LOGIN` and `ACTIVEMQ_ADMIN_PASSWORD` is now required, even if it was optional in earlier versions.
 
 [1]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.17-jre17-rockylinux8
 [2]: https://img.shields.io/docker/image-size/alfresco/alfresco-activemq/5.18-jre17-rockylinux8
