@@ -17,7 +17,7 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: Alfresco/alfresco-build-tools/.github/actions/pre-commit@v17.0.0
+      - uses: Alfresco/alfresco-build-tools/.github/actions/pre-commit@v17.6.1
 
   docker:
     name: activemq ${{ matrix.activemq_base_version }}
@@ -87,7 +87,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build ActiveMQ image locally
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           load: true
           target: activemq_image
@@ -109,7 +109,7 @@ jobs:
           ./tests/test-activemq.sh local/${IMAGE_REPOSITORY}:ci
 
       - name: Build multi-arch and push ActiveMQ
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           push: ${{ github.actor != 'dependabot[bot]' }}
           build-args: |
