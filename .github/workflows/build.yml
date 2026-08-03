@@ -17,7 +17,7 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: Alfresco/alfresco-build-tools/.github/actions/pre-commit@v18.21.0
+      - uses: Alfresco/alfresco-build-tools/.github/actions/pre-commit@v18.21.1
 
   docker:
     name: activemq ${{ matrix.activemq_base_version }}
@@ -73,7 +73,7 @@ jobs:
           fi
 
       - name: Login to quay.io
-        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4.5.1
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
@@ -81,7 +81,7 @@ jobs:
 
       - name: Login to docker.io
         if: github.event_name == 'push'
-        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4.5.1
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
