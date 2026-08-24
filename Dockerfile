@@ -67,6 +67,18 @@ if [ -f "${ACTIVEMQ_HOME}/conf/jetty.xml" ]; then
     -u "//b:bean[@id='jettyPort']/b:property[@name='host']/@value" \
     -v "0.0.0.0" \
     "${ACTIVEMQ_HOME}/conf/jetty.xml"
+
+  # ActiveMQ 6.2.6+ added InetAccessHandler, restricting web console/Jolokia access to
+  # loopback by default regardless of the jettyPort host binding above. Widen it to match,
+  # since this image relies on ACTIVEMQ_ADMIN_LOGIN/ACTIVEMQ_ADMIN_PASSWORD for access control.
+  # No-op on versions without these beans.
+  xmlstarlet ed -L \
+    -N b="http://www.springframework.org/schema/beans" \
+    -u "//b:bean[@id='inetAccessIncludeLoopbackV4']/b:property[@name='arguments']/b:list/b:value" \
+       -v "0.0.0.0/0" \
+    -u "//b:bean[@id='inetAccessIncludeLoopbackV6']/b:property[@name='arguments']/b:list/b:value" \
+       -v "::/0" \
+    "${ACTIVEMQ_HOME}/conf/jetty.xml"
 fi
 
 # Enable JAAS authentication for ActiveMQ 6.x and above

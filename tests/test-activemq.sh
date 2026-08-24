@@ -23,6 +23,7 @@ trap cleanup EXIT
 echo "▶ Starting ActiveMQ container..."
 docker run -d \
   --name "$CONTAINER" \
+  -p 8161:8161 \
   -e ACTIVEMQ_BROKER_NAME="$EXPECTED_BROKER_NAME" \
   "$IMAGE" >/dev/null
 
@@ -92,5 +93,14 @@ else
   fi
   echo "✅ Authentication not enforced (expected for 5.x)"
 fi
+
+# web console must be reachable through the published port, not just from inside the
+# container's own loopback (ActiveMQ 6.2.6+ restricts it to loopback by default)
+HTTP_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -u admin:admin http://localhost:8161/admin/)
+if [[ "$HTTP_STATUS" != "200" ]]; then
+  echo "❌ Web console returned HTTP $HTTP_STATUS via published port (expected 200)"
+  exit 1
+fi
+echo "✅ Web console reachable via published port"
 
 echo "✅ All tests passed for image $IMAGE"
