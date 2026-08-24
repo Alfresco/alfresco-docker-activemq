@@ -22,6 +22,7 @@ jobs:
   docker:
     name: activemq ${{ matrix.activemq_base_version }}
     strategy:
+      fail-fast: false
       matrix:
         base_image:
           - flavor: rockylinux
