@@ -33,10 +33,11 @@ jobs:
       - id: select
         name: Select versions affected by the change
         env:
+          ALL_VERSIONS: ${{ steps.all.outputs.versions }}
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          versions='${{ steps.all.outputs.versions }}'
+          versions="$ALL_VERSIONS"
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             files=$(gh api --paginate "repos/${{ github.repository }}/pulls/${PR_NUMBER}/files" --jq '.[].filename')
             if [[ -n "$files" ]] && ! grep -qvE '^versions/activemq-[0-9.]+\.json$' <<< "$files"; then

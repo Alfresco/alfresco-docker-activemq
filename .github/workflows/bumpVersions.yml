@@ -53,18 +53,10 @@ jobs:
           restore-keys: |
             updatecli-v1-
 
-      - name: Set required environment variables
-        run: |
-          echo "ACTIVEMQ_MAJOR=${{ matrix.activemq_major }}" >> $GITHUB_ENV
-
-      - name: Save current version
-        id: current
-        run: |
-          echo "activemq=$(jq -r '.activemq_version' versions/activemq-${{ matrix.activemq_major }}.json)" >> $GITHUB_OUTPUT
-
       - name: Run updatecli
-        run: |
-          updatecli apply
+        env:
+          ACTIVEMQ_MAJOR: ${{ matrix.activemq_major }}
+        run: updatecli apply
 
       - name: Save updated version
         id: updated
