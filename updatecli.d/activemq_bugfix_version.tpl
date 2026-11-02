@@ -55,7 +55,7 @@ actions:
     kind: github/pullrequest
     scmid: github
     spec:
-      title: Bump activemq {{ $activemqVersion }} to {{ source `activemqTag` }}
+      title: Bump activemq to {{ source `activemqTag` }}
       labels:
         - updatecli
       reviewers:
