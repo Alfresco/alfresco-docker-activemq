@@ -1,0 +1,17 @@
+---
+name: List activemq versions
+description: List the activemq major versions that have a versions/activemq-<major>.json file
+
+outputs:
+  versions:
+    description: JSON array of activemq major versions
+    value: ${{ steps.list.outputs.versions }}
+
+runs:
+  using: composite
+  steps:
+    - id: list
+      shell: bash
+      run: |
+        versions=$(ls versions/activemq-*.json | sed -E 's#^versions/activemq-(.+)\.json$#\1#' | jq -R . | jq -sc .)
+        echo "versions=$versions" >> $GITHUB_OUTPUT

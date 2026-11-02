@@ -1,18 +1,6 @@
-name: "Bump activemq versions"
-
-{{ $activemqVersions := list "6.2" "5.19" "5.18" "5.17" }}
+name: "Bump activemq version"
 
 scms:
-  github:
-    kind: github
-    spec:
-      owner: alfresco
-      repository: alfresco-docker-activemq
-      branch: master
-      token: {{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}
-      username: {{ requiredEnv "UPDATECLI_GITHUB_USERNAME" }}
-      user: {{ requiredEnv "UPDATECLI_GITHUB_USERNAME" }}
-      email: {{ requiredEnv "UPDATECLI_GITHUB_EMAIL" }}
   activemq:
     kind: git
     spec:
@@ -20,49 +8,29 @@ scms:
       branch: main
 
 sources:
-{{ range $activemqVersion := $activemqVersions }}
-  activemq{{ $activemqVersion }}Tag:
-    name: Get activemq {{ $activemqVersion }} version
+  activemqTag:
+    name: Get activemq {{ requiredEnv "ACTIVEMQ_MAJOR" }} version
     kind: gittag
     scmid: activemq
     spec:
       versionfilter:
         kind: regex
-        pattern: "activemq-{{ $activemqVersion }}"
+        pattern: "activemq-{{ requiredEnv "ACTIVEMQ_MAJOR" }}"
     transformers:
       - trimprefix: "activemq-"
-{{ end }}
 
 conditions:
-{{ range $activemqVersion := $activemqVersions }}
-{{ $activemqSourceRef := printf "activemq%sTag" $activemqVersion }}
-  archive{{ $activemqVersion }}Ready:
+  archiveReady:
     kind: http
     disablesourceinput: true
     spec:
-      url: https://archive.apache.org/dist/activemq/{{ source $activemqSourceRef }}/apache-activemq-{{ source $activemqSourceRef }}-bin.tar.gz
-{{ end }}
+      url: https://archive.apache.org/dist/activemq/{{ source `activemqTag` }}/apache-activemq-{{ source `activemqTag` }}-bin.tar.gz
 
 targets:
-{{ range $activemqVersion := $activemqVersions }}
-  activemq{{ $activemqVersion }}Json:
-    name: Update version in activemq {{ $activemqVersion }} json target
+  activemqJson:
+    name: Update version in activemq json target
     kind: json
-    sourceid: activemq{{ $activemqVersion }}Tag
-    scmid: github
+    sourceid: activemqTag
     spec:
-      file: versions/activemq-{{ $activemqVersion }}.json
+      file: versions/activemq-{{ requiredEnv "ACTIVEMQ_MAJOR" }}.json
       key: activemq_version
-{{ end }}
-
-
-actions:
-  pr:
-    kind: github/pullrequest
-    scmid: github
-    spec:
-      title: Bump Activemq versions
-      labels:
-        - updatecli
-      reviewers:
-        - Alfresco/alfresco-ops-readiness

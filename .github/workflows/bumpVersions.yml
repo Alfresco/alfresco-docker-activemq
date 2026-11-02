@@ -2,18 +2,42 @@
 name: Bump activemq versions
 
 on:
-  push:
+  pull_request:
     paths:
       - .github/workflows/bumpVersions.yml
+      - versions/*.json
+      - .github/actions/**
       - updatecli.d/**
   workflow_dispatch:
   schedule:
     - cron:  '0 6 * * MON'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
-  updatecli:
+  versions:
+    name: Read activemq versions
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
+    outputs:
+      activemq_majors: ${{ steps.read.outputs.versions }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - id: read
+        uses: ./.github/actions/list-activemq-versions
+
+  updatecli:
+    name: Activemq ${{ matrix.activemq_major }} version bump
+    runs-on: ubuntu-latest
+    needs: versions
+    strategy:
+      fail-fast: false
+      matrix:
+        activemq_major: ${{ fromJSON(needs.versions.outputs.activemq_majors) }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -31,7 +55,33 @@ jobs:
 
       - name: Run updatecli
         env:
-          UPDATECLI_GITHUB_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN }}
-          UPDATECLI_GITHUB_USERNAME: ${{ vars.BOT_GITHUB_USERNAME }}
-          UPDATECLI_GITHUB_EMAIL: ${{ vars.BOT_GITHUB_EMAIL }}
+          ACTIVEMQ_MAJOR: ${{ matrix.activemq_major }}
         run: updatecli apply
+
+      - name: Save updated version
+        id: updated
+        run: |
+          echo "activemq=$(jq -r '.activemq_version' versions/activemq-${{ matrix.activemq_major }}.json)" >> $GITHUB_OUTPUT
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        if: github.event_name != 'pull_request'
+        with:
+          client-id: ${{ vars.GH_APP_ENGINEERING_CONTRIB_CLIENT_ID }}
+          private-key: ${{ secrets.GH_APP_ENGINEERING_CONTRIB_PRIVATE_KEY }}
+          permission-contents: write
+          permission-members: read
+          permission-pull-requests: write
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        if: github.event_name != 'pull_request'
+        with:
+          branch: bump-activemq-${{ matrix.activemq_major }}
+          base: ${{ github.event.repository.default_branch }}
+          title: Bump activemq to ${{ steps.updated.outputs.activemq }}
+          body: "Freshly served thanks to updatecli and GitHub Actions"
+          token: ${{ steps.app-token.outputs.token }}
+          team-reviewers: ops-readiness-performance
+          labels: updatecli
