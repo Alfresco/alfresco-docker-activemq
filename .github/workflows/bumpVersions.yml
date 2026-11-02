@@ -2,7 +2,7 @@
 name: Bump activemq versions
 
 on:
-  push:
+  pull_request:
     paths:
       - .github/workflows/bumpVersions.yml
       - updatecli.d/**
@@ -10,10 +10,19 @@ on:
   schedule:
     - cron:  '0 6 * * MON'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   updatecli:
+    name: Activemq ${{ matrix.activemq_major }} version bump
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
+    strategy:
+      fail-fast: false
+      matrix:
+        activemq_major: ['6.2', '5.19', '5.18', '5.17']
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -29,9 +38,34 @@ jobs:
           restore-keys: |
             updatecli-v1-
 
+      - name: Set required environment variables
+        run: |
+          echo "ACTIVEMQ_MAJOR=${{ matrix.activemq_major }}" >> $GITHUB_ENV
+
+      - name: Save current version
+        id: current
+        run: |
+          echo "activemq=$(jq -r '.activemq_version' versions/activemq-${{ matrix.activemq_major }}.json)" >> $GITHUB_OUTPUT
+
       - name: Run updatecli
-        env:
-          UPDATECLI_GITHUB_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN }}
-          UPDATECLI_GITHUB_USERNAME: ${{ vars.BOT_GITHUB_USERNAME }}
-          UPDATECLI_GITHUB_EMAIL: ${{ vars.BOT_GITHUB_EMAIL }}
-        run: updatecli apply
+        run: |
+          updatecli apply
+
+      - name: Save updated version
+        id: updated
+        run: |
+          echo "activemq=$(jq -r '.activemq_version' versions/activemq-${{ matrix.activemq_major }}.json)" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        if: github.event_name != 'pull_request'
+        with:
+          branch: bump-activemq-${{ matrix.activemq_major }}
+          base: ${{ github.event.repository.default_branch }}
+          title: Bump activemq to ${{ steps.updated.outputs.activemq }}
+          body: "Freshly served thanks to updatecli and GitHub Actions"
+          token: ${{ secrets.BOT_GITHUB_TOKEN }}
+          team-reviewers: alfresco-ops-readiness
+          author: ${{ vars.BOT_GITHUB_USERNAME }} <${{ vars.BOT_GITHUB_EMAIL }}>
+          committer: ${{ vars.BOT_GITHUB_USERNAME }} <${{ vars.BOT_GITHUB_EMAIL }}>
+          labels: updatecli
