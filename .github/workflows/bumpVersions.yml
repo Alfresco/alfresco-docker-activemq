@@ -5,6 +5,8 @@ on:
   pull_request:
     paths:
       - .github/workflows/bumpVersions.yml
+      - versions/*.json
+      - .github/actions/**
       - updatecli.d/**
   workflow_dispatch:
   schedule:
@@ -15,14 +17,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  versions:
+    name: Read activemq versions
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+    outputs:
+      activemq_majors: ${{ steps.read.outputs.versions }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - id: read
+        uses: ./.github/actions/list-activemq-versions
+
   updatecli:
     name: Activemq ${{ matrix.activemq_major }} version bump
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]'
+    needs: versions
     strategy:
       fail-fast: false
       matrix:
-        activemq_major: ['6.2', '5.19', '5.18', '5.17']
+        activemq_major: ${{ fromJSON(needs.versions.outputs.activemq_majors) }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

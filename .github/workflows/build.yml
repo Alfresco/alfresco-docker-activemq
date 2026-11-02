@@ -25,14 +25,18 @@ jobs:
     outputs:
       activemq_base_versions: ${{ steps.select.outputs.activemq_base_versions }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - id: all
+        uses: ./.github/actions/list-activemq-versions
+
       - id: select
         name: Select versions affected by the change
         env:
-          ALL_VERSIONS: '["5.17","5.18","5.19","6.2"]'
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          versions="$ALL_VERSIONS"
+          versions='${{ steps.all.outputs.versions }}'
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             files=$(gh api --paginate "repos/${{ github.repository }}/pulls/${PR_NUMBER}/files" --jq '.[].filename')
             if [[ -n "$files" ]] && ! grep -qvE '^versions/activemq-[0-9.]+\.json$' <<< "$files"; then
