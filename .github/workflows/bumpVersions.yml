@@ -75,5 +75,5 @@ jobs:
           title: Bump activemq to ${{ steps.updated.outputs.activemq }}
           body: "Freshly served thanks to updatecli and GitHub Actions"
           token: ${{ steps.app-token.outputs.token }}
-          team-reviewers: alfresco-ops-readiness
+          team-reviewers: ops-readiness-performance
           labels: updatecli
