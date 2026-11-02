@@ -56,6 +56,16 @@ jobs:
         run: |
           echo "activemq=$(jq -r '.activemq_version' versions/activemq-${{ matrix.activemq_major }}.json)" >> $GITHUB_OUTPUT
 
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        if: github.event_name != 'pull_request'
+        with:
+          client-id: ${{ vars.GH_APP_ENGINEERING_CONTRIB_CLIENT_ID }}
+          private-key: ${{ secrets.GH_APP_ENGINEERING_CONTRIB_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         if: github.event_name != 'pull_request'
@@ -64,8 +74,6 @@ jobs:
           base: ${{ github.event.repository.default_branch }}
           title: Bump activemq to ${{ steps.updated.outputs.activemq }}
           body: "Freshly served thanks to updatecli and GitHub Actions"
-          token: ${{ secrets.BOT_GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           team-reviewers: alfresco-ops-readiness
-          author: ${{ vars.BOT_GITHUB_USERNAME }} <${{ vars.BOT_GITHUB_EMAIL }}>
-          committer: ${{ vars.BOT_GITHUB_USERNAME }} <${{ vars.BOT_GITHUB_EMAIL }}>
           labels: updatecli
