@@ -1,6 +1,8 @@
-name: "Bump activemq versions"
-
 {{ $activemqVersions := list "6.2" "5.19" "5.18" "5.17" }}
+
+{{ range $activemqVersion := $activemqVersions }}
+---
+name: "Bump activemq {{ $activemqVersion }} version"
 
 scms:
   github:
@@ -20,8 +22,7 @@ scms:
       branch: main
 
 sources:
-{{ range $activemqVersion := $activemqVersions }}
-  activemq{{ $activemqVersion }}Tag:
+  activemqTag:
     name: Get activemq {{ $activemqVersion }} version
     kind: gittag
     scmid: activemq
@@ -31,38 +32,32 @@ sources:
         pattern: "activemq-{{ $activemqVersion }}"
     transformers:
       - trimprefix: "activemq-"
-{{ end }}
 
 conditions:
-{{ range $activemqVersion := $activemqVersions }}
-{{ $activemqSourceRef := printf "activemq%sTag" $activemqVersion }}
-  archive{{ $activemqVersion }}Ready:
+  archiveReady:
     kind: http
     disablesourceinput: true
     spec:
-      url: https://archive.apache.org/dist/activemq/{{ source $activemqSourceRef }}/apache-activemq-{{ source $activemqSourceRef }}-bin.tar.gz
-{{ end }}
+      url: https://archive.apache.org/dist/activemq/{{ source `activemqTag` }}/apache-activemq-{{ source `activemqTag` }}-bin.tar.gz
 
 targets:
-{{ range $activemqVersion := $activemqVersions }}
-  activemq{{ $activemqVersion }}Json:
+  activemqJson:
     name: Update version in activemq {{ $activemqVersion }} json target
     kind: json
-    sourceid: activemq{{ $activemqVersion }}Tag
+    sourceid: activemqTag
     scmid: github
     spec:
       file: versions/activemq-{{ $activemqVersion }}.json
       key: activemq_version
-{{ end }}
-
 
 actions:
   pr:
     kind: github/pullrequest
     scmid: github
     spec:
-      title: Bump Activemq versions
+      title: Bump activemq {{ $activemqVersion }} to {{ source `activemqTag` }}
       labels:
         - updatecli
       reviewers:
         - Alfresco/alfresco-ops-readiness
+{{ end }}
