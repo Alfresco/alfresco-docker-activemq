@@ -43,7 +43,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Updatecli
-        uses: Alfresco/alfresco-build-tools/.github/actions/setup-updatecli@v19.1.0
+        uses: Alfresco/alfresco-build-tools/.github/actions/setup-updatecli@v19.12.1
 
       - name: Updatecli scm cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -75,7 +75,7 @@ jobs:
           permission-pull-requests: write
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        uses: peter-evans/create-pull-request@15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8 # v8.1.2
         if: github.event_name != 'pull_request'
         with:
           branch: bump-activemq-${{ matrix.activemq_major }}
